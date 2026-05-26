@@ -1,0 +1,403 @@
+{% extends "base.html" %}
+{% block title %}BurnoutGuard — Predict & Track Student Burnout Risk{% endblock %}
+
+{% block extra_css %}
+<style>
+  .hero {
+    min-height: calc(100vh - 60px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-eyebrow {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--purple);
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+
+  .hero-eyebrow::before,
+  .hero-eyebrow::after {
+    content: '';
+    width: 40px;
+    height: 1px;
+    background: var(--purple);
+    opacity: 0.5;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+    max-width: 800px;
+  }
+
+  .hero h1 .accent {
+    color: var(--purple);
+  }
+
+  .hero h1 .accent-2 {
+    color: var(--cyan);
+  }
+
+  .hero-sub {
+    font-size: 1.1rem;
+    color: var(--fg-muted);
+    max-width: 560px;
+    margin-bottom: 2.5rem;
+    line-height: 1.7;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 3rem;
+    margin-top: 4rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .hero-stat-item {
+    text-align: center;
+  }
+
+  .hero-stat-num {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--fg);
+    font-family: var(--font-mono);
+  }
+
+  .hero-stat-label {
+    font-size: 0.8rem;
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* Orb backgrounds */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .orb-1 {
+    width: 500px;
+    height: 500px;
+    background: rgba(108, 99, 255, 0.07);
+    top: -100px;
+    left: -100px;
+  }
+
+  .orb-2 {
+    width: 400px;
+    height: 400px;
+    background: rgba(0, 212, 170, 0.05);
+    bottom: -50px;
+    right: -50px;
+  }
+
+  /* Features section */
+  .features-section {
+    padding: 5rem 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .features-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .features-header h2 {
+    font-size: 2rem;
+    font-weight: 700;
+  }
+
+  .features-header p {
+    color: var(--fg-muted);
+    margin-top: 0.5rem;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 768px) {
+    .features-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .feature-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.75rem;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .feature-card:hover {
+    border-color: var(--border-glow);
+    transform: translateY(-3px);
+  }
+
+  .feature-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  .feature-card h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .feature-card p {
+    font-size: 0.875rem;
+    color: var(--fg-muted);
+    line-height: 1.65;
+  }
+
+  /* How it works */
+  .how-section {
+    padding: 4rem 1.5rem;
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .step {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+    padding: 1.5rem 0;
+  }
+
+  .step:not(:last-child) {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .step-num {
+    width: 42px;
+    height: 42px;
+    background: rgba(108, 99, 255, 0.15);
+    border: 1px solid rgba(108, 99, 255, 0.4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--purple);
+    flex-shrink: 0;
+    font-size: 0.9rem;
+  }
+
+  .step-body h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+
+  .step-body p {
+    font-size: 0.875rem;
+    color: var(--fg-muted);
+  }
+
+  /* CTA section */
+  .cta-section {
+    padding: 5rem 1.5rem;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cta-box {
+    max-width: 600px;
+    margin: 0 auto;
+    background: var(--bg-card);
+    border: 1px solid var(--border-glow);
+    border-radius: var(--radius-lg);
+    padding: 3rem 2rem;
+    box-shadow: var(--glow-purple);
+  }
+
+  .cta-box h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  .cta-box p {
+    color: var(--fg-muted);
+    margin-bottom: 2rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-eyebrow">Explainable AI · Weekly Tracking · Personalised Recovery</div>
+  <h1>
+    Know Your<br>
+    <span class="accent">Burnout Risk</span><br>
+    Before It Knows You
+  </h1>
+  <p class="hero-sub">
+    BurnoutGuard uses a trained Logistic Regression model with SHAP explanations to predict
+    your weekly burnout risk — and tells you exactly <em>why</em>.
+  </p>
+  <div class="hero-actions">
+    <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Start Tracking Free →</a>
+    <a href="{{ url_for('login') }}" class="btn btn-outline btn-lg">Sign In</a>
+  </div>
+  <div class="hero-stats">
+    <div class="hero-stat-item">
+      <div class="hero-stat-num">10K</div>
+      <div class="hero-stat-label">Training Samples</div>
+    </div>
+    <div class="hero-stat-item">
+      <div class="hero-stat-num">99.4%</div>
+      <div class="hero-stat-label">LR Accuracy</div>
+    </div>
+    <div class="hero-stat-item">
+      <div class="hero-stat-num">4</div>
+      <div class="hero-stat-label">Weeks of Tracking</div>
+    </div>
+    <div class="hero-stat-item">
+      <div class="hero-stat-num">SHAP</div>
+      <div class="hero-stat-label">Explainable AI</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FEATURES ── -->
+<section class="features-section">
+  <div class="features-header">
+    <h2>Everything You Need to Understand Your Wellness</h2>
+    <p>Built for students, by research — powered by real student data and validated extensively.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <span class="feature-icon">🧠</span>
+      <h3>Explainable AI (SHAP)</h3>
+      <p>See exactly which factors — overthinking, sleep, screen time — are driving your burnout score. Not a black box.
+      </p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">📅</span>
+      <h3>4-Week Tracking</h3>
+      <p>Submit the same survey each week. The system tracks improvement, decline, or stability over your month.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">📈</span>
+      <h3>Trend Analysis</h3>
+      <p>Automatic trend detection across weeks: Improving, Declining, Stable, or Fluctuating — with context.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">💡</span>
+      <h3>Personalised Plans</h3>
+      <p>Targeted recovery plans for High risk. Improvement plans for Medium. Reinforcement for Low.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🔬</span>
+      <h3>Logistic Regression (Primary)</h3>
+      <p>Trained on 10,000 synthetic samples with class_weight='balanced' to handle imbalance. Validated on real student
+        responses.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🔒</span>
+      <h3>Secure & Private</h3>
+      <p>SHA-256 password hashing. Your wellness data stays in your account only.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section class="how-section">
+  <div class="features-header">
+    <h2>How It Works</h2>
+    <p>Four simple steps to full burnout awareness.</p>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-body">
+        <h4>Create Your Account</h4>
+        <p>Register with your name and email. Your profile persists across all 4 weeks.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-body">
+        <h4>Fill the Weekly Survey</h4>
+        <p>19 questions about sleep, stress, screen time, motivation, and wellbeing. Takes 3 minutes.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-body">
+        <h4>Get Your Prediction + SHAP Explanation</h4>
+        <p>Instant Low/Medium/High prediction with a waterfall chart showing which features influenced it most.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <div class="step-body">
+        <h4>Track Your Trend & Follow the Plan</h4>
+        <p>After each week, your dashboard shows the trend. Follow the personalised recovery plan to improve.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="cta-section">
+  <div class="cta-box">
+    <h2>Ready to Take Control of Your Wellness?</h2>
+    <p>Join the BurnoutGuard tracking programme. Free, private, and built on real science.</p>
+    <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Create Account →</a>
+  </div>
+</section>
+{% endblock %}

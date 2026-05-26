@@ -1,0 +1,55 @@
+{
+  "groups": {
+    "Academic Stress": [
+      "Study_Work_Hours_per_Day",
+      "Overthinking_Score",
+      "Anxiety_Score",
+      "Motivation_Level",
+      "Working_Status_enc"
+    ],
+    "Behavioural Patterns": [
+      "Screen_Time_Hours",
+      "Night_Scrolling_Frequency",
+      "Online_Gaming_Hours",
+      "Daily_Social_Media_Hours",
+      "Caffeine_Intake_Cups",
+      "Content_Type_enc"
+    ],
+    "Lifestyle & Health": [
+      "Daily_Sleep_Hours",
+      "Sleep_Quality_Score",
+      "Exercise_Frequency_per_Week",
+      "Mood_Stability_Score",
+      "Emotional_Fatigue_Score",
+      "Social_Comparison_Index",
+      "Age",
+      "Gender_enc"
+    ]
+  },
+  "group_colors": {
+    "Academic Stress": "#6c63ff",
+    "Behavioural Patterns": "#00d4aa",
+    "Lifestyle & Health": "#f39c12"
+  },
+  "feature_labels": {
+    "Study_Work_Hours_per_Day": "Study/Work Hrs/Day",
+    "Daily_Sleep_Hours": "Sleep Hrs/Day",
+    "Exercise_Frequency_per_Week": "Exercise Days/Wk",
+    "Caffeine_Intake_Cups": "Caffeine/Day",
+    "Screen_Time_Hours": "Screen Time",
+    "Night_Scrolling_Frequency": "Night Scrolling",
+    "Online_Gaming_Hours": "Gaming Hrs",
+    "Overthinking_Score": "Overthinking",
+    "Social_Comparison_Index": "Social Comparison",
+    "Anxiety_Score": "Anxiety",
+    "Mood_Stability_Score": "Mood Stability",
+    "Emotional_Fatigue_Score": "Emotional Fatigue",
+    "Daily_Social_Media_Hours": "Social Media Hrs",
+    "Motivation_Level": "Motivation Level",
+    "Sleep_Quality_Score": "Sleep Quality",
+    "Age": "Age",
+    "Gender_enc": "Gender",
+    "Working_Status_enc": "Working Status",
+    "Content_Type_enc": "Content Type"
+  }
+}

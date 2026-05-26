@@ -1,0 +1,465 @@
+{% extends "base.html" %}
+{% block title %}Research Results — BurnoutGuard{% endblock %}
+
+{% block extra_css %}
+<style>
+  .research-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .research-header .eyebrow {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--purple);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .research-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+  }
+
+  .research-header p {
+    color: var(--fg-muted);
+    margin-top: 0.4rem;
+    max-width: 650px;
+    line-height: 1.65;
+  }
+
+  /* Metric card */
+  .metric-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  @media(max-width:900px) {
+    .metric-cards {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .metric-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    text-align: center;
+  }
+
+  .metric-card .m-val {
+    font-size: 2rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    color: var(--purple);
+  }
+
+  .metric-card .m-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--fg-muted);
+    margin-top: 0.25rem;
+  }
+
+  .metric-card .m-model {
+    font-size: 0.72rem;
+    color: var(--fg-dim);
+    margin-top: 0.15rem;
+  }
+
+  /* Chart images */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  @media(max-width:768px) {
+    .charts-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .chart-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+  }
+
+  .chart-box h3 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+  }
+
+  .chart-box img {
+    width: 100%;
+    border-radius: var(--radius);
+  }
+
+  /* Student predictions table */
+  .pred-dist {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .dist-item {
+    flex: 1;
+    min-width: 140px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    text-align: center;
+  }
+
+  .dist-item .d-count {
+    font-size: 2.5rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+  }
+
+  .dist-item .d-label {
+    font-size: 0.8rem;
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .dist-item.d-Low .d-count {
+    color: #27ae60;
+  }
+
+  .dist-item.d-Medium .d-count {
+    color: #f39c12;
+  }
+
+  .dist-item.d-High .d-count {
+    color: #e74c3c;
+  }
+
+  /* Data pipeline section */
+  .pipeline-steps {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+
+  .pipe-step {
+    flex: 1;
+    min-width: 140px;
+    text-align: center;
+    padding: 1rem;
+    position: relative;
+  }
+
+  .pipe-step:not(:last-child)::after {
+    content: '→';
+    position: absolute;
+    right: -0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--purple);
+    font-size: 1.2rem;
+  }
+
+  .pipe-icon {
+    font-size: 1.8rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .pipe-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  .pipe-sub {
+    font-size: 0.68rem;
+    color: var(--fg-muted);
+    margin-top: 0.2rem;
+  }
+
+  /* Student table */
+  .student-scroll {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap page-wide">
+
+  <!-- Header -->
+  <div class="research-header">
+    <div class="eyebrow">🔬 Research & Evaluation</div>
+    <h1>ML Model Performance on Real Student Data</h1>
+    <p>
+      The Logistic Regression model was trained on 10,000 synthetic samples and tested on
+      <strong>real responses</strong> collected via Google Form from RV University students.
+      Below are the evaluation results, visualisations, and per-student predictions.
+    </p>
+  </div>
+
+  <!-- Validation metrics -->
+  {% if metrics.validation %}
+  <h2 style="font-size:1.2rem; font-weight:700; margin-bottom:1rem;">Validation Set Performance (80/20 split of training
+    data)</h2>
+  <div class="metric-cards">
+    {% set rf = metrics.validation['Random Forest'] %}
+    {% set lr = metrics.validation['Logistic Regression'] %}
+    <div class="metric-card">
+      <div class="m-val">{{ (rf.Accuracy * 100)|round(1) }}%</div>
+      <div class="m-label">RF Accuracy</div>
+      <div class="m-model">Random Forest</div>
+    </div>
+    <div class="metric-card">
+      <div class="m-val">{{ (rf['F1-Score'] * 100)|round(1) }}%</div>
+      <div class="m-label">RF F1-Score</div>
+      <div class="m-model">Weighted Average</div>
+    </div>
+    <div class="metric-card">
+      <div class="m-val">{{ (rf['AUC-ROC'] * 100)|round(1) }}%</div>
+      <div class="m-label">RF AUC-ROC</div>
+      <div class="m-model">OvR Weighted</div>
+    </div>
+    <div class="metric-card">
+      <div class="m-val">{{ (lr.Accuracy * 100)|round(1) }}%</div>
+      <div class="m-label">LR Accuracy</div>
+      <div class="m-model">Logistic Regression</div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Real test distribution -->
+  {% if metrics.test_distribution %}
+  <h2 style="font-size:1.2rem; font-weight:700; margin-bottom:1rem;">
+    Predictions on Real Student Responses
+  </h2>
+  <div class="pred-dist">
+    {% for level in ['Low', 'Medium', 'High'] %}
+    <div class="dist-item d-{{ level }}">
+      <div class="d-count">{{ metrics.test_distribution.get(level, 0) }}</div>
+      <div class="d-label">{{ level }} Risk</div>
+      <div style="font-size:0.75rem; color:var(--fg-dim); margin-top:0.2rem;">
+        {{ ((metrics.test_distribution.get(level, 0) / [n_test,1]|max) * 100)|round(1) }}% of students
+      </div>
+    </div>
+    {% endfor %}
+    <div class="dist-item">
+      <div class="d-count" style="color:var(--purple);">{{ n_test }}</div>
+      <div class="d-label">Total</div>
+      <div style="font-size:0.75rem; color:var(--fg-dim); margin-top:0.2rem;">Real responses</div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Charts grid -->
+  <div class="charts-grid">
+    <div class="chart-box">
+      <h3>📊 Class Distribution (Training)</h3>
+      <img src="{{ url_for('static', filename='img/class_distribution.png') }}" alt="Class Distribution"
+        onerror="this.style.display='none'">
+    </div>
+    <div class="chart-box">
+      <h3>🎯 Model Comparison</h3>
+      <img src="{{ url_for('static', filename='img/model_comparison.png') }}" alt="Model Comparison"
+        onerror="this.style.display='none'">
+    </div>
+    <div class="chart-box">
+      <h3>🌲 Confusion Matrix — Random Forest</h3>
+      <img src="{{ url_for('static', filename='img/cm_rf.png') }}" alt="RF Confusion Matrix"
+        onerror="this.style.display='none'">
+    </div>
+    <div class="chart-box">
+      <h3>📈 Confusion Matrix — Logistic Regression</h3>
+      <img src="{{ url_for('static', filename='img/cm_lr.png') }}" alt="LR Confusion Matrix"
+        onerror="this.style.display='none'">
+    </div>
+    <div class="chart-box">
+      <h3>🔍 Global Feature Importance (RF)</h3>
+      <img src="{{ url_for('static', filename='img/feature_importance.png') }}" alt="Feature Importance"
+        onerror="this.style.display='none'">
+    </div>
+    <div class="chart-box">
+      <h3>🔮 SHAP Summary (Validation Set)</h3>
+      <img src="{{ url_for('static', filename='img/shap_summary.png') }}" alt="SHAP Summary"
+        onerror="this.style.display='none'">
+    </div>
+    <div class="chart-box">
+      <h3>🔮 SHAP Summary (Real Students)</h3>
+      <img src="{{ url_for('static', filename='img/shap_summary_real.png') }}" alt="SHAP Summary Real"
+        onerror="this.style.display='none'">
+    </div>
+    <div class="chart-box">
+      <h3>📊 Test Set Prediction Distribution</h3>
+      <img src="{{ url_for('static', filename='img/test_predictions.png') }}" alt="Test Predictions"
+        onerror="this.style.display='none'">
+    </div>
+  </div>
+
+
+  <!-- Grouped SHAP Charts -->
+  <div class="card mb-3">
+    <div class="card-title">🔍 SHAP Analysis by Domain (Academic / Behavioural / Lifestyle)</div>
+    <div class="charts-grid" style="margin-bottom:1rem;">
+      <div class="chart-box">
+        <h3>Feature Importance by Domain</h3>
+        <img src="{{ url_for('static', filename='img/shap_grouped.png') }}" alt="SHAP Grouped"
+          onerror="this.style.display='none'">
+      </div>
+      <div class="chart-box">
+        <h3>Group Contribution by Risk Level</h3>
+        <img src="{{ url_for('static', filename='img/shap_group_by_risk.png') }}" alt="SHAP Group Risk"
+          onerror="this.style.display='none'">
+      </div>
+    </div>
+    <p style="font-size:0.82rem; color:var(--fg-muted); line-height:1.65;">
+      Features are grouped into three domains:
+      <span style="color:#6c63ff; font-weight:700;">Academic Stress</span> (study hours, anxiety, motivation),
+      <span style="color:#00d4aa; font-weight:700;">Behavioural Patterns</span> (screen time, social media, gaming), and
+      <span style="color:#f39c12; font-weight:700;">Lifestyle & Health</span> (sleep, exercise, mood, emotional
+      fatigue).
+      The grouped SHAP analysis shows which domain drives burnout risk most strongly in this student cohort.
+    </p>
+  </div>
+
+  <!-- Grouped SHAP for 5 individual students -->
+  <div class="card mb-3">
+    <div class="card-title">📊 Individual Student SHAP — Domain Breakdown (Students 1–5)</div>
+    <div class="charts-grid">
+      {% for i in range(1, 6) %}
+      <div class="chart-box">
+        <h3>Student {{ i }} — Domain SHAP</h3>
+        <img src="{{ url_for('static', filename='img/shap_grouped_student_' ~ i ~ '.png') }}" alt="SHAP Student {{ i }}"
+          onerror="this.style.display='none'">
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- SHAP individual examples -->
+  <div class="card mb-3">
+    <div class="card-title">🔍 SHAP Individual Explanations — Real Students (Sample)</div>
+    <div class="charts-grid" style="margin-bottom:0;">
+      {% for i in range(1, 6) %}
+      <div class="chart-box" style="margin-bottom:0;">
+        <h3>Student {{ i }} — SHAP</h3>
+        <img src="{{ url_for('static', filename='img/shap_real_student_' ~ i ~ '.png') }}" alt="SHAP Student {{ i }}"
+          onerror="this.style.display='none'">
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Per-student predictions table -->
+  {% if metrics.student_predictions %}
+  <div class="card">
+    <div class="card-title">📋 Per-Student Predictions (All Real Responses)</div>
+    <div class="student-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Student #</th>
+            <th>Predicted Risk</th>
+            <th>Low Conf.</th>
+            <th>Medium Conf.</th>
+            <th>High Conf.</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in metrics.student_predictions %}
+          <tr>
+            <td class="mono">{{ s.student_id }}</td>
+            <td><span class="risk-badge risk-{{ s.predicted_risk }}">{{ s.predicted_risk }}</span></td>
+            <td class="mono text-green">{{ (s.confidence.Low * 100)|round(1) }}%</td>
+            <td class="mono text-yellow">{{ (s.confidence.Medium * 100)|round(1) }}%</td>
+            <td class="mono text-red">{{ (s.confidence.High * 100)|round(1) }}%</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Pipeline info box -->
+  <div class="card mt-4">
+    <div class="card-title">⚙️ ML Pipeline Summary</div>
+    <div class="pipeline-steps">
+      <div class="pipe-step">
+        <div class="pipe-icon">📂</div>
+        <div class="pipe-label">Raw Data</div>
+        <div class="pipe-sub">10,000 train<br>{{ n_test }} test</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-icon">🧹</div>
+        <div class="pipe-label">Cleaning</div>
+        <div class="pipe-sub">Parse ranges<br>Clip outliers</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-icon">🔤</div>
+        <div class="pipe-label">Encoding</div>
+        <div class="pipe-sub">LabelEncoder<br>Categoricals</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-icon">⚖️</div>
+        <div class="pipe-label">Scaling</div>
+        <div class="pipe-sub">StandardScaler<br>Z-normalisation</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-icon">🌲</div>
+        <div class="pipe-label">Train RF</div>
+        <div class="pipe-sub">200 trees<br>class_weight=balanced</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-icon">🔍</div>
+        <div class="pipe-label">LinearSHAP</div>
+        <div class="pipe-sub">decision_path<br>per-feature contrib</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-icon">📊</div>
+        <div class="pipe-label">Evaluate</div>
+        <div class="pipe-sub">Accuracy/F1/<br>AUC-ROC/5-CV</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data notes -->
+  <div class="card mt-3">
+    <div class="card-title">📝 Data Cleaning Notes (Real Google Form Data)</div>
+    <div style="font-size:0.875rem; color:var(--fg-muted); line-height:1.8;">
+      <p><strong style="color:var(--fg)">Issues found in real responses:</strong></p>
+      <ul
+        style="list-style:disc; padding-left:1.5rem; margin-top:0.5rem; display:flex; flex-direction:column; gap:0.3rem;">
+        <li><strong>Range strings</strong> like "5-6", "2-3 hours", "5to6", "5-6 hours" → parsed to midpoint (e.g., 5.5)
+        </li>
+        <li><strong>Noise values</strong> like "No", "0-2", "0-3" in gaming column → parsed as 0 or midpoint</li>
+        <li><strong>Outliers</strong>: sleep=16 hours (impossible) → clipped to max 12. Gaming=30 hours → clipped to 12.
+        </li>
+        <li><strong>Trailing whitespace</strong> in country field ("India ") → stripped</li>
+        <li><strong>Mixed types</strong>: numeric columns stored as object due to string entries → all re-parsed as
+          float</li>
+        <li><strong>Blank "motivation this week" column</strong> → dropped (all NaN)</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

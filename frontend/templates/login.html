@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Login — BurnoutGuard{% endblock %}
+{% block extra_css %}
+<style>
+.auth-wrap {
+  min-height: calc(100vh - 120px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  position: relative;
+  z-index: 1;
+}
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem;
+}
+.auth-title { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.4rem; }
+.auth-sub   { font-size: 0.875rem; color: var(--fg-muted); margin-bottom: 2rem; }
+.auth-footer { text-align:center; margin-top:1.5rem; font-size:0.875rem; color: var(--fg-muted); }
+.auth-footer a { color: var(--purple); text-decoration: none; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <h1 class="auth-title">Welcome back</h1>
+    <p class="auth-sub">Sign in to continue your burnout tracking</p>
+    <form method="POST" action="{{ url_for('login') }}">
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input type="text" name="username" class="form-control"
+               placeholder="your_username" required autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" class="form-control"
+               placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-primary w-full mt-2">Sign In →</button>
+    </form>
+    <div class="auth-footer">
+      Don't have an account? <a href="{{ url_for('register') }}">Register here</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

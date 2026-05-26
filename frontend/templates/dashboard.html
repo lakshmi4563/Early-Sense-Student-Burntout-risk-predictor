@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — BurnoutGuard{% endblock %}
+{% block extra_css %}
+<style>
+.dash-header {
+  margin-bottom: 2rem;
+}
+.dash-header h1 { font-size: 1.8rem; font-weight: 700; }
+.dash-header p  { color: var(--fg-muted); margin-top: 0.3rem; }
+
+/* Stat cards row */
+.stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+@media(max-width:768px){ .stat-cards { grid-template-columns: 1fr 1fr; } }
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+}
+.stat-card .label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--fg-muted);
+  margin-bottom: 0.5rem;
+}
+.stat-card .value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1;
+  font-family: var(--font-mono);
+}
+.stat-card .sub { font-size: 0.78rem; color: var(--fg-dim); margin-top: 0.3rem; }
+
+/* Week tracker */
+.week-tracker {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+.week-dot {
+  flex: 1;
+  padding: 0.9rem 0.5rem;
+  border-radius: var(--radius);
+  text-align: center;
+  border: 1px solid var(--border);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.week-dot.done-Low    { background: rgba(39,174,96,0.12); border-color: rgba(39,174,96,0.4); color: #27ae60; }
+.week-dot.done-Medium { background: rgba(243,156,18,0.12); border-color: rgba(243,156,18,0.4); color: #f39c12; }
+.week-dot.done-High   { background: rgba(231,76,60,0.12); border-color: rgba(231,76,60,0.4); color: #e74c3c; }
+.week-dot.next        { background: rgba(108,99,255,0.1); border-color: rgba(108,99,255,0.5); color: var(--purple); }
+.week-dot.locked      { background: var(--bg-raised); color: var(--fg-dim); }
+
+.week-dot .wnum  { font-size: 0.7rem; color: var(--fg-dim); margin-bottom: 0.2rem; }
+.week-dot .wlabel{ font-size: 1.2rem; }
+
+/* Main grid */
+.dash-main { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
+@media(max-width:900px){ .dash-main { grid-template-columns: 1fr; } }
+
+/* Trend banner */
+.trend-banner {
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-raised);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.trend-icon { font-size: 1.5rem; }
+.trend-text h4 { font-size: 0.95rem; font-weight: 700; }
+.trend-text p  { font-size: 0.82rem; color: var(--fg-muted); margin-top: 0.15rem; }
+
+/* No data state */
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--fg-muted);
+}
+.empty-state .es-icon { font-size: 3rem; margin-bottom: 1rem; display: block; }
+.empty-state h3 { font-size: 1.1rem; font-weight: 700; color: var(--fg); margin-bottom: 0.5rem; }
+.empty-state p  { font-size: 0.875rem; margin-bottom: 1.5rem; }
+
+/* Image containers */
+.chart-img { width: 100%; border-radius: var(--radius); border: 1px solid var(--border); }
+
+/* Recommendation list */
+.rec-list { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
+.rec-list li {
+  font-size: 0.855rem;
+  color: var(--fg-muted);
+  padding-left: 1.2rem;
+  position: relative;
+  line-height: 1.55;
+}
+.rec-list li::before { content: '→'; position: absolute; left: 0; color: var(--purple); }
+
+/* Confidence bars */
+.conf-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.6rem;
+}
+.conf-row .clabel {
+  width: 60px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.conf-bar-wrap { flex: 1; background: var(--bg-raised); height: 8px; border-radius: 100px; overflow: hidden; }
+.conf-bar      { height: 100%; border-radius: 100px; }
+.conf-pct { font-size: 0.75rem; font-family: var(--font-mono); width: 44px; text-align: right; color: var(--fg-muted); }
+
+.c-Low    { background: var(--green); }
+.c-Medium { background: var(--yellow); }
+.c-High   { background: var(--red); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+  <!-- Header -->
+  <div class="dash-header flex-between">
+    <div>
+      <h1>Welcome, {{ user.full_name }} 👋</h1>
+      <p>Your burnout risk dashboard — 4-week tracking programme</p>
+    </div>
+    <div style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:center;">
+      {% if can_submit %}
+      <a href="{{ url_for('survey') }}" class="btn btn-primary">Submit Week {{ next_week }} Survey →</a>
+      {% else %}
+      <span class="btn btn-outline" style="cursor:default;">✓ All 4 Weeks Complete</span>
+      {% endif %}
+      <a href="{{ url_for('model_insights') }}" class="btn btn-outline" title="Demo guide: values for Low/Med/High">🔬 Model Insights</a>
+      <form method="POST" action="{{ url_for('reset_survey') }}" style="margin:0;"
+            onsubmit="return confirm('Reset all survey data and start from Week 1?');">
+        <button type="submit" class="btn btn-outline" style="color:#e74c3c; border-color:rgba(231,76,60,0.4);">↺ Reset Survey</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="stat-cards">
+    <div class="stat-card">
+      <div class="label">Weeks Completed</div>
+      <div class="value text-purple">{{ weeks_submitted|length }}<span style="font-size:1rem;color:var(--fg-dim)">/4</span></div>
+      <div class="sub">{{ 'All done!' if weeks_submitted|length == 4 else 'Week ' ~ next_week ~ ' pending' }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Current Risk</div>
+      {% if latest_pred %}
+        <div class="value text-{% if latest_pred.predicted_risk == 'High' %}red{% elif latest_pred.predicted_risk == 'Medium' %}yellow{% else %}green{% endif %}">
+          {{ latest_pred.predicted_risk }}
+        </div>
+        <div class="sub">Week {{ latest_pred.week_number }} result</div>
+      {% else %}
+        <div class="value text-muted">—</div>
+        <div class="sub">Not submitted yet</div>
+      {% endif %}
+    </div>
+    <div class="stat-card">
+      <div class="label">Trend</div>
+      <div class="value" style="font-size:1.2rem;">{{ trend_info.trend }}</div>
+      <div class="sub">Over {{ weeks_submitted|length }} week(s)</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Next Action</div>
+      {% if can_submit %}
+        <div class="value text-purple" style="font-size:1rem;">Survey</div>
+        <div class="sub">Week {{ next_week }} ready</div>
+      {% else %}
+        <div class="value text-green" style="font-size:1rem;">Done</div>
+        <div class="sub">Review history</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Week Tracker -->
+  <div class="week-tracker">
+    {% for w in range(1, 5) %}
+      {% if w in weeks_submitted %}
+        {% set pred_w = predictions | selectattr('week_number', 'equalto', w) | list | first %}
+        {% set risk = pred_w.predicted_risk if pred_w else 'Medium' %}
+        <div class="week-dot done-{{ risk }}">
+          <div class="wnum">Week {{ w }}</div>
+          <div class="wlabel">
+            {% if risk == 'Low' %}✅{% elif risk == 'Medium' %}🟡{% else %}🔴{% endif %}
+          </div>
+          <div>{{ risk }}</div>
+        </div>
+      {% elif w == next_week and can_submit %}
+        <div class="week-dot next">
+          <div class="wnum">Week {{ w }}</div>
+          <div class="wlabel">📝</div>
+          <div>Pending</div>
+        </div>
+      {% else %}
+        <div class="week-dot locked">
+          <div class="wnum">Week {{ w }}</div>
+          <div class="wlabel">🔒</div>
+          <div>Locked</div>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  <!-- Trend Banner -->
+  {% if trend_info.trend != 'No Data' and trend_info.trend != 'Baseline' %}
+  <div class="trend-banner">
+    <div class="trend-icon">
+      {% if 'Improving' in trend_info.trend %}📈
+      {% elif 'Declining' in trend_info.trend %}📉
+      {% elif 'Stable' in trend_info.trend %}➡️
+      {% else %}〰️{% endif %}
+    </div>
+    <div class="trend-text">
+      <h4>Trend: {{ trend_info.trend }}</h4>
+      <p>{{ trend_info.details }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Main Dashboard Grid -->
+  <div class="dash-main">
+    <!-- Left column -->
+    <div style="display:flex; flex-direction:column; gap:1.5rem;">
+
+      <!-- Weekly chart -->
+      <div class="card">
+        <div class="card-title">📊 Weekly Progress Chart</div>
+        {% if chart_file %}
+          <img src="{{ url_for('static', filename='img/' ~ chart_file) }}"
+               class="chart-img" alt="Weekly Trend">
+        {% else %}
+          <div class="empty-state">
+            <span class="es-icon">📊</span>
+            <h3>No Chart Yet</h3>
+            <p>Submit your first week to see your trend chart.</p>
+            <a href="{{ url_for('survey') }}" class="btn btn-primary">Start Week 1 →</a>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- SHAP explanation for latest week -->
+      {% if latest_shap_chart %}
+      <div class="card">
+        <div class="card-title">🔍 SHAP Explanation — Week {{ latest_pred.week_number }}</div>
+        <img src="{{ url_for('static', filename='img/' ~ latest_shap_chart) }}"
+             class="chart-img" alt="SHAP Explanation">
+        <p class="text-muted text-small mt-2">
+          Red bars = features that <strong>increase</strong> your burnout risk.
+          Green bars = features that <strong>reduce</strong> it.
+          Bar length shows magnitude of influence.
+        </p>
+      </div>
+      {% endif %}
+
+      <!-- Recommendations -->
+      {% if latest_rec %}
+      <div class="card">
+        <div class="card-title">💡 Latest Recommendations (Week {{ latest_pred.week_number }})</div>
+        <div class="mb-2">
+          <span class="risk-badge risk-{{ latest_pred.predicted_risk }}">
+            {{ latest_pred.predicted_risk }} Risk
+          </span>
+        </div>
+        <p class="text-small" style="color:var(--fg-muted); margin-bottom:1rem;">{{ latest_rec.summary }}</p>
+        {% if latest_rec.immediate %}
+          <h4 style="font-size:0.85rem; font-weight:700; margin-bottom:0.5rem;">⚡ Immediate Actions</h4>
+          <ul class="rec-list mb-2">
+            {% for item in latest_rec.immediate %}
+              <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+        {% if latest_rec.daily_habits %}
+          <h4 style="font-size:0.85rem; font-weight:700; margin-bottom:0.5rem;">📅 Daily Habits</h4>
+          <ul class="rec-list">
+            {% for item in latest_rec.daily_habits %}
+              <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+        <div class="divider"></div>
+        <p class="text-small text-purple">{{ latest_rec.motivational_message }}</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Right column -->
+    <div style="display:flex; flex-direction:column; gap:1.5rem;">
+
+      {% if not predictions %}
+      <!-- Empty state -->
+      <div class="card">
+        <div class="empty-state" style="padding:2rem 1rem;">
+          <span class="es-icon">🎯</span>
+          <h3>Start Your Journey</h3>
+          <p>Complete your first survey to get your burnout risk prediction and personalised plan.</p>
+          <a href="{{ url_for('survey') }}" class="btn btn-primary">Week 1 Survey →</a>
+        </div>
+      </div>
+      {% else %}
+
+      <!-- Confidence scores -->
+      {% if latest_pred %}
+      <div class="card">
+        <div class="card-title">🎯 Prediction Confidence</div>
+        <div class="mb-2">
+          <span class="risk-badge risk-{{ latest_pred.predicted_risk }}">
+            {{ latest_pred.predicted_risk }} Risk
+          </span>
+          <span class="text-small text-muted" style="margin-left:0.5rem;">Week {{ latest_pred.week_number }}</span>
+        </div>
+        {% set conf_low    = latest_pred.confidence_low    | float %}
+        {% set conf_medium = latest_pred.confidence_medium | float %}
+        {% set conf_high   = latest_pred.confidence_high   | float %}
+        <div class="conf-row">
+          <div class="clabel text-green">Low</div>
+          <div class="conf-bar-wrap"><div class="conf-bar c-Low" style="width:{{ (conf_low*100)|int }}%"></div></div>
+          <div class="conf-pct">{{ (conf_low*100)|int }}%</div>
+        </div>
+        <div class="conf-row">
+          <div class="clabel text-yellow">Medium</div>
+          <div class="conf-bar-wrap"><div class="conf-bar c-Medium" style="width:{{ (conf_medium*100)|int }}%"></div></div>
+          <div class="conf-pct">{{ (conf_medium*100)|int }}%</div>
+        </div>
+        <div class="conf-row">
+          <div class="clabel text-red">High</div>
+          <div class="conf-bar-wrap"><div class="conf-bar c-High" style="width:{{ (conf_high*100)|int }}%"></div></div>
+          <div class="conf-pct">{{ (conf_high*100)|int }}%</div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Week history list -->
+      <div class="card">
+        <div class="card-title">📋 All Weeks</div>
+        {% for p in predictions %}
+        <div style="padding: 0.75rem 0; border-bottom: 1px solid var(--border);">
+          <div class="flex-between">
+            <span style="font-weight:600; font-size:0.9rem;">Week {{ p.week_number }}</span>
+            <span class="risk-badge risk-{{ p.predicted_risk }}">{{ p.predicted_risk }}</span>
+          </div>
+          <div class="text-small text-muted mt-1">
+            <a href="{{ url_for('result', week=p.week_number) }}"
+               style="color:var(--purple); text-decoration:none;">View full analysis →</a>
+          </div>
+        </div>
+        {% endfor %}
+        {% if can_submit %}
+        <div style="padding: 0.75rem 0;">
+          <a href="{{ url_for('survey') }}" class="btn btn-primary btn-sm w-full">
+            Submit Week {{ next_week }} →
+          </a>
+        </div>
+        {% endif %}
+      </div>
+
+      {% if latest_rec and latest_rec.resources %}
+      <!-- Resources -->
+      <div class="card">
+        <div class="card-title">📞 Support Resources</div>
+        {% for res in latest_rec.resources %}
+        <div style="padding: 0.6rem 0; border-bottom: 1px solid rgba(42,42,74,0.5);">
+          <div style="font-size:0.85rem; font-weight:600;">{{ res.name }}</div>
+          <div class="text-small text-muted">
+            {% if res.type == 'phone' %}📞{% elif res.type == 'app' %}📱{% else %}🌐{% endif %}
+            {{ res.contact }}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

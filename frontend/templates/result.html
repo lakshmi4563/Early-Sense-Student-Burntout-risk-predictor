@@ -1,0 +1,433 @@
+{% extends "base.html" %}
+{% block title %}Week {{ week }} Results — BurnoutGuard{% endblock %}
+
+{% block extra_css %}
+<style>
+.result-wrap {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Hero result card ── */
+.result-hero {
+  text-align: center;
+  padding: 3rem 2rem;
+  margin-bottom: 2rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.result-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.06;
+  pointer-events: none;
+}
+.result-hero.risk-Low    { background: rgba(39,174,96,0.08);  border-color: rgba(39,174,96,0.4); }
+.result-hero.risk-Medium { background: rgba(243,156,18,0.08); border-color: rgba(243,156,18,0.4); }
+.result-hero.risk-High   { background: rgba(231,76,60,0.08);  border-color: rgba(231,76,60,0.4); }
+
+.result-hero .week-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--fg-muted);
+  margin-bottom: 1rem;
+}
+.result-hero .risk-display {
+  font-size: 5rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+.risk-display.Low    { color: #27ae60; }
+.risk-display.Medium { color: #f39c12; }
+.risk-display.High   { color: #e74c3c; }
+.result-hero .risk-subtitle { font-size: 1.1rem; color: var(--fg-muted); margin-bottom: 1.5rem; }
+.result-hero .motivational { font-size: 1rem; color: var(--fg); font-style: italic; max-width: 500px; margin: 0 auto; }
+
+/* Confidence meter */
+.confidence-section {
+  margin-top: 2rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.conf-pill {
+  padding: 0.5rem 1.2rem;
+  border-radius: 100px;
+  font-size: 0.875rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  border: 1px solid;
+}
+.conf-pill.low-risk    { background: rgba(39,174,96,0.12);  border-color: rgba(39,174,96,0.4);  color: #27ae60; }
+.conf-pill.medium-risk { background: rgba(243,156,18,0.12); border-color: rgba(243,156,18,0.4); color: #f39c12; }
+.conf-pill.high-risk   { background: rgba(231,76,60,0.12);  border-color: rgba(231,76,60,0.4);  color: #e74c3c; }
+.conf-pill.predicted   { outline: 2px solid var(--purple); outline-offset: 2px; }
+
+/* Main grid */
+.result-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+@media(max-width: 768px) { .result-grid { grid-template-columns: 1fr; } }
+
+/* Top features */
+.top-features { display: flex; flex-direction: column; gap: 0.75rem; }
+.feature-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 1rem;
+  background: var(--bg-raised);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.feature-rank {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: rgba(108,99,255,0.15);
+  color: var(--purple);
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.feature-info { flex: 1; }
+.feature-name { font-size: 0.875rem; font-weight: 600; }
+.feature-raw  { font-size: 0.75rem; color: var(--fg-muted); margin-top: 0.1rem; }
+.feature-shap {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+}
+.shap-up   { color: #e74c3c; background: rgba(231,76,60,0.12); }
+.shap-down { color: #27ae60; background: rgba(39,174,96,0.12); }
+.feature-arrow { font-size: 1rem; }
+.group-title-academic { color: #6c63ff; }
+.group-title-behavioural { color: #00d4aa; }
+.group-title-lifestyle { color: #f39c12; }
+
+/* Recommendations */
+.rec-section { margin-bottom: 2rem; }
+.rec-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.rec-header h2 { font-size: 1.3rem; font-weight: 700; }
+.plan-block {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+}
+.plan-block h4 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--fg-muted);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.plan-block ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+.plan-block li {
+  font-size: 0.875rem;
+  color: var(--fg);
+  padding-left: 1.25rem;
+  position: relative;
+  line-height: 1.55;
+}
+.plan-block li::before { content: '→'; position: absolute; left: 0; color: var(--purple); }
+
+/* Resources */
+.resources-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; }
+.resource-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  transition: border-color 0.2s;
+}
+.resource-card:hover { border-color: var(--border-glow); }
+.resource-type { font-size: 1.3rem; margin-bottom: 0.4rem; }
+.resource-name { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.2rem; }
+.resource-contact { font-size: 0.78rem; color: var(--purple); font-family: var(--font-mono); }
+
+/* Chart image */
+.chart-img { width: 100%; border-radius: var(--radius); border: 1px solid var(--border); }
+
+/* Trend mini */
+.trend-mini {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: var(--bg-raised);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  margin-bottom: 1.5rem;
+}
+.trend-mini h4 { font-size: 0.95rem; font-weight: 700; }
+.trend-mini p  { font-size: 0.8rem; color: var(--fg-muted); }
+
+/* Navigation footer */
+.result-nav { display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
+
+/* Explanation callout */
+.shap-explainer {
+  background: rgba(108,99,255,0.06);
+  border: 1px solid rgba(108,99,255,0.25);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin-top: 1rem;
+}
+.shap-explainer h5 { font-size: 0.82rem; font-weight: 700; color: var(--purple); margin-bottom: 0.4rem; }
+.shap-explainer p  { font-size: 0.8rem; color: var(--fg-muted); line-height: 1.55; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="result-wrap">
+
+  <!-- ── HERO RESULT ── -->
+  <div class="result-hero risk-{{ pred.predicted_risk }}">
+    <div class="week-label">Week {{ week }} Prediction Result</div>
+    <div class="risk-display {{ pred.predicted_risk }}">{{ pred.predicted_risk }}</div>
+    <div class="risk-subtitle">
+      {% if pred.predicted_risk == 'High' %}
+        You are showing <strong>High Burnout Risk</strong> — immediate action recommended
+      {% elif pred.predicted_risk == 'Medium' %}
+        You are at <strong>Medium Burnout Risk</strong> — warning signs detected
+      {% else %}
+        You have <strong>Low Burnout Risk</strong> — keep maintaining these habits!
+      {% endif %}
+    </div>
+    {% if rec %}
+    <p class="motivational">{{ rec.motivational_message }}</p>
+    {% endif %}
+
+    <!-- Confidence pills -->
+    <div class="confidence-section">
+      <div class="conf-pill low-risk {% if pred.predicted_risk == 'Low' %}predicted{% endif %}">
+        Low: {{ (pred.confidence_low * 100)|int }}%
+      </div>
+      <div class="conf-pill medium-risk {% if pred.predicted_risk == 'Medium' %}predicted{% endif %}">
+        Medium: {{ (pred.confidence_medium * 100)|int }}%
+      </div>
+      <div class="conf-pill high-risk {% if pred.predicted_risk == 'High' %}predicted{% endif %}">
+        High: {{ (pred.confidence_high * 100)|int }}%
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TREND BANNER ── -->
+  {% if trend.trend != 'No Data' %}
+  <div class="trend-mini">
+    <div style="font-size:1.5rem;">
+      {% if 'Improving' in trend.trend %}📈
+      {% elif 'Declining' in trend.trend %}📉
+      {% elif 'Stable' in trend.trend %}➡️
+      {% else %}〰️{% endif %}
+    </div>
+    <div>
+      <h4>{{ trend.trend }}</h4>
+      <p>{{ trend.details }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ── MAIN ANALYSIS GRID ── -->
+  <div class="result-grid">
+
+    <!-- Top Features -->
+    <div class="card">
+      <div class="card-title">🔍 Top Contributing Factors (SHAP)</div>
+      <p class="text-small text-muted mb-2">
+        These are the features that had the most influence on your prediction this week.
+      </p>
+      {% if top_feats %}
+      <div class="top-features">
+        {% for feat in top_feats %}
+        <div class="feature-row">
+          <div class="feature-rank">{{ loop.index }}</div>
+          <div class="feature-info">
+            <div class="feature-name">{{ feat.name }}</div>
+            <div class="feature-raw">Your value: <strong>{{ feat.raw_value }}</strong></div>
+          </div>
+          <div class="feature-shap {% if feat.direction == 'increases' %}shap-up{% else %}shap-down{% endif %}">
+            {% if feat.direction == 'increases' %}↑{% else %}↓{% endif %}
+            {{ '%+.4f' | format(feat.shap_value) }}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="shap-explainer">
+        <h5>How to read this</h5>
+        <p>
+          <strong style="color:#e74c3c">↑ Red values</strong> = this feature pushed your prediction toward higher burnout.
+          <strong style="color:#27ae60">↓ Green values</strong> = this feature pushed it toward lower risk.
+          The magnitude shows how strongly.
+        </p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- SHAP Chart -->
+    <div class="card">
+      <div class="card-title">📊 SHAP Waterfall Chart</div>
+      {% if shap_chart %}
+        <img src="{{ url_for('static', filename='img/' ~ shap_chart) }}"
+             class="chart-img" alt="SHAP Explanation Week {{ week }}">
+      {% else %}
+        <div style="text-align:center; padding:2rem; color:var(--fg-muted);">
+          Chart generation pending
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ── GROUPED SHAP BREAKDOWN ── -->
+  <div class="result-grid" style="margin-bottom:2rem;">
+    <div class="card">
+      <div class="card-title">🎯 Feature Impact by Category</div>
+      <p class="text-small text-muted mb-2">
+        SHAP values grouped into three key areas: Academic Stress, Behavioural Patterns, and Lifestyle & Health.
+        Each category shows the top factors contributing to your predicted risk level.
+      </p>
+      {% if grouped_shap %}
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.5rem;">
+        {% for group_name, group_data in grouped_shap.items() %}
+        <div style="background:var(--bg-raised); border-radius:var(--radius-lg); padding:1.25rem; border:1px solid var(--border);">
+          <h4 class="{% if 'Academic' in group_name %}group-title-academic{% elif 'Behavioural' in group_name %}group-title-behavioural{% else %}group-title-lifestyle{% endif %}" style="font-size:0.9rem; font-weight:700; margin-bottom:0.75rem;">
+            {% if 'Academic' in group_name %}📚 Academic Stress
+            {% elif 'Behavioural' in group_name %}💻 Behavioural Patterns
+            {% else %}🏃 Lifestyle & Health{% endif %}
+          </h4>
+          <p style="font-size:0.75rem; color:var(--fg-muted); margin-bottom:1rem;">
+            Total SHAP impact: <strong>{{ "%.4f"|format(group_data.total) }}</strong>
+          </p>
+          <ul style="list-style:none; display:flex; flex-direction:column; gap:0.5rem;">
+            {% for feat in group_data.features[:3] %}
+            <li style="font-size:0.8rem; padding:0.4rem 0; border-bottom:1px solid rgba(42,42,74,0.3); display:flex; justify-content:space-between; align-items:center;">
+              <span>{{ feat.label[:20] }}</span>
+              <span class="{% if feat.direction == 'increases' %}shap-up{% else %}shap-down{% endif %}" style="font-family:var(--font-mono); font-weight:600;">
+                {% if feat.direction == 'increases' %}↑{% else %}↓{% endif %}{{ "%.4f"|format(feat.shap_value) }}
+              </span>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ── CONFIDENCE GAUGE ── -->
+  <div class="result-grid" style="margin-bottom:2rem;">
+    <div class="card">
+      <div class="card-title">📈 Prediction Confidence Breakdown</div>
+      <p class="text-small text-muted mb-2">
+        The model's confidence distribution across the three risk levels. A well-calibrated prediction shows strong confidence in the predicted class.
+      </p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; align-items:center;">
+        <div>
+          <div style="display:flex; flex-direction:column; gap:0.75rem;">
+            <div style="display:flex; align-items:center; gap:1rem;">
+              <div style="width:100px; height:24px; background:linear-gradient(to right, #27ae60, rgba(39,174,96,0.2)); border-radius:6px;"></div>
+              <div>
+                <div style="font-size:0.85rem; font-weight:700;">Low Risk</div>
+                <div style="font-size:0.75rem; color:var(--fg-muted);">{{ (pred.confidence_low * 100)|round(1) }}%</div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:1rem;">
+              <div style="width:100px; height:24px; background:linear-gradient(to right, #f39c12, rgba(243,156,18,0.2)); border-radius:6px;"></div>
+              <div>
+                <div style="font-size:0.85rem; font-weight:700;">Medium Risk</div>
+                <div style="font-size:0.75rem; color:var(--fg-muted);">{{ (pred.confidence_medium * 100)|round(1) }}%</div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:1rem;">
+              <div style="width:100px; height:24px; background:linear-gradient(to right, #e74c3c, rgba(231,76,60,0.2)); border-radius:6px;"></div>
+              <div>
+                <div style="font-size:0.85rem; font-weight:700;">High Risk</div>
+                <div style="font-size:0.75rem; color:var(--fg-muted);">{{ (pred.confidence_high * 100)|round(1) }}%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <img src="{{ url_for('static', filename='img/' ~ gauge_chart) }}"
+               style="width:100%; border-radius:var(--radius); border:1px solid var(--border);"
+               alt="Confidence Gauge" onerror="this.parentElement.style.display='none'">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RECOMMENDATION PLAN ── -->
+  {% if rec %}
+  <div class="rec-section">
+    <div class="rec-header">
+      <div class="section-icon">
+        {% if pred.predicted_risk == 'High' %}⚠️{% elif pred.predicted_risk == 'Medium' %}🟡{% else %}✅{% endif %}
+      </div>
+      <h2>Your Personalised Recovery Plan</h2>
+    </div>
+
+    <div class="card mb-2">
+      <p style="font-size:0.95rem; line-height:1.7;">{{ rec.summary }}</p>
+    </div>
+
+    <div class="result-grid">
+      {% if rec.immediate %}
+      <div class="plan-block">
+        <h4>⚡ Immediate Actions</h4>
+        <ul>{% for item in rec.immediate %}<li>{{ item }}</li>{% endfor %}</ul>
+      </div>
+      {% endif %}
+      {% if rec.daily_habits %}
+      <div class="plan-block">
+        <h4>📅 Daily Habits to Build</h4>
+        <ul>{% for item in rec.daily_habits %}<li>{{ item }}</li>{% endfor %}</ul>
+      </div>
+      {% endif %}
+    </div>
+
+    {% if rec.weekly_goals %}
+    <div class="plan-block">
+      <h4>🎯 This Week's Goals</h4>
+      <ul style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem 2rem;">
+        {% for item in rec.weekly_goals %}<li>{{ item }}</li>{% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+  </div>
+  {% endif %}
+
+  <!-- ── NAVIGATION ── -->
+  <div class="result-nav">
+    <a href="{{ url_for('dashboard') }}" class="btn btn-primary">← Dashboard</a>
+    <a href="{{ url_for('history') }}"   class="btn btn-outline">View All Weeks</a>
+    {% if week < 4 %}
+    <a href="{{ url_for('survey') }}" class="btn btn-outline">Next Week Survey →</a>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

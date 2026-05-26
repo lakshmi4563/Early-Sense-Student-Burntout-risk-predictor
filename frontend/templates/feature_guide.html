@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Feature Guide — BurnoutGuard{% endblock %}
+{% block extra_css %}
+<style>
+.guide-header { text-align:center; margin-bottom:2.5rem; }
+.guide-header h1 { font-size:2rem; font-weight:700; }
+.guide-header p  { color:var(--fg-muted); margin-top:0.4rem; max-width:600px; margin-left:auto; margin-right:auto; }
+
+.guide-grid { display:grid; grid-template-columns: repeat(3,1fr); gap:1.5rem; margin-bottom:2rem; }
+@media(max-width:900px){ .guide-grid{grid-template-columns:1fr;} }
+
+.guide-card {
+  background:var(--bg-card);
+  border-radius:var(--radius-lg);
+  border:1px solid var(--border);
+  overflow:hidden;
+}
+.guide-card-header {
+  padding:1.25rem 1.5rem;
+  border-bottom:1px solid var(--border);
+}
+.guide-card-header h2 { font-size:1.2rem; font-weight:700; margin-bottom:0.3rem; }
+.guide-card-header p  { font-size:0.82rem; color:var(--fg-muted); }
+.guide-card-body { padding:1.25rem 1.5rem; }
+
+.feat-row {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0.55rem 0;
+  border-bottom:1px solid rgba(42,42,74,0.4);
+  font-size:0.85rem;
+}
+.feat-row:last-child { border-bottom:none; }
+.feat-name  { color:var(--fg-muted); }
+.feat-value { font-weight:700; font-family:var(--font-mono); font-size:0.8rem; }
+
+/* Key insight box */
+.key-insight {
+  background:rgba(108,99,255,0.06);
+  border:1px solid rgba(108,99,255,0.25);
+  border-radius:var(--radius);
+  padding:1.25rem 1.5rem;
+  margin-bottom:2rem;
+}
+.key-insight h3 { font-size:1rem; font-weight:700; color:var(--purple); margin-bottom:0.75rem; }
+.key-insight p  { font-size:0.875rem; color:var(--fg-muted); line-height:1.65; margin-bottom:0.5rem; }
+.key-insight strong { color:var(--fg); }
+
+.demo-note {
+  background:rgba(243,156,18,0.06);
+  border:1px solid rgba(243,156,18,0.25);
+  border-radius:var(--radius);
+  padding:1.25rem 1.5rem;
+  margin-bottom:2rem;
+  font-size:0.875rem;
+  line-height:1.65;
+}
+.demo-note strong { color:#f39c12; }
+
+.leakage-box {
+  background:rgba(231,76,60,0.06);
+  border:1px solid rgba(231,76,60,0.3);
+  border-radius:var(--radius);
+  padding:1.25rem 1.5rem;
+  margin-bottom:2rem;
+}
+.leakage-box h3 { font-size:1rem; font-weight:700; color:#e74c3c; margin-bottom:0.75rem; }
+.leakage-box p  { font-size:0.875rem; color:var(--fg-muted); line-height:1.65; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+  <div class="guide-header">
+    <h1>🎯 Feature Guide — Demo &amp; Viva Reference</h1>
+    <p>Exact survey values to enter to trigger Low, Medium, or High burnout risk predictions.
+       Use this to demonstrate the system during your project submission.</p>
+  </div>
+
+  <!-- Data leakage note -->
+  <div class="leakage-box">
+    <h3>⚠️ Data Leakage Fix: Wellbeing_Index Removed</h3>
+    <p>
+      The original dataset had a <strong>Wellbeing_Index</strong> column with correlation
+      <strong>–0.81</strong> with the Burnout_Risk target — this is classic data leakage
+      (the target is partially encoded in the feature). It was <strong>removed from all models</strong>
+      in this system. The model now uses 19 features instead of 20, making the predictions
+      genuinely predictive rather than artificially inflated.
+    </p>
+  </div>
+
+  <!-- Demo tip -->
+  <div class="demo-note">
+    <strong>For your demo/viva:</strong> Fill the survey with the exact values shown below to demonstrate
+    each risk level prediction. The most influential features are
+    <strong>Anxiety Score, Motivation Level, Sleep Quality, Mood Stability, Sleep Hours</strong>, and
+    <strong>Emotional Fatigue</strong> — changing these 6 will reliably change the prediction.
+    You can also use the <strong>Reset Survey</strong> button in the dashboard to redo Week 1
+    and show different predictions live.
+  </div>
+
+  <!-- 3 guide cards -->
+  <div class="guide-grid">
+    {% for risk, info in guide.items() %}
+    <div class="guide-card">
+      <div class="guide-card-header" style="border-left:4px solid {{ info.color }};">
+        <h2 style="color:{{ info.color }};">{{ info.label }}</h2>
+        <p>{{ info.desc }}</p>
+      </div>
+      <div class="guide-card-body">
+        {% for fname, fval in info.features.items() %}
+        <div class="feat-row">
+          <div class="feat-name">{{ fname }}</div>
+          <div class="feat-value" style="color:{{ info.color }};">{{ fval }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Key insight on top features -->
+  <div class="key-insight">
+    <h3>🔍 Why These 5 Features Matter Most (SHAP Analysis)</h3>
+    <p>Based on SHAP TreeExplainer analysis on 200 validation samples, the top 5 most impactful features are:</p>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-top:0.75rem;">
+      <div style="background:var(--bg-raised); border-radius:10px; padding:1rem;">
+        <div style="font-size:1.4rem; font-weight:700; color:var(--purple); font-family:var(--font-mono);">1</div>
+        <div style="font-weight:700; margin:0.3rem 0 0.2rem;">Anxiety Score</div>
+        <div style="font-size:0.8rem; color:var(--fg-muted);">High anxiety → strongly predicts High burnout. Importance: 21.98%</div>
+      </div>
+      <div style="background:var(--bg-raised); border-radius:10px; padding:1rem;">
+        <div style="font-size:1.4rem; font-weight:700; color:var(--purple); font-family:var(--font-mono);">2</div>
+        <div style="font-weight:700; margin:0.3rem 0 0.2rem;">Motivation Level</div>
+        <div style="font-size:0.8rem; color:var(--fg-muted);">Low motivation → strongly predicts High burnout. Importance: 18.42%</div>
+      </div>
+      <div style="background:var(--bg-raised); border-radius:10px; padding:1rem;">
+        <div style="font-size:1.4rem; font-weight:700; color:var(--purple); font-family:var(--font-mono);">3</div>
+        <div style="font-weight:700; margin:0.3rem 0 0.2rem;">Sleep Quality Score</div>
+        <div style="font-size:0.8rem; color:var(--fg-muted);">Poor sleep quality → higher burnout risk. Importance: 15.06%</div>
+      </div>
+      <div style="background:var(--bg-raised); border-radius:10px; padding:1rem;">
+        <div style="font-size:1.4rem; font-weight:700; color:var(--purple); font-family:var(--font-mono);">4</div>
+        <div style="font-weight:700; margin:0.3rem 0 0.2rem;">Mood Stability</div>
+        <div style="font-size:0.8rem; color:var(--fg-muted);">Unstable mood → predicts High burnout. Importance: 14.41%</div>
+      </div>
+      <div style="background:var(--bg-raised); border-radius:10px; padding:1rem;">
+        <div style="font-size:1.4rem; font-weight:700; color:var(--purple); font-family:var(--font-mono);">5</div>
+        <div style="font-weight:700; margin:0.3rem 0 0.2rem;">Daily Sleep Hours</div>
+        <div style="font-size:0.8rem; color:var(--fg-muted);">Less than 6 hours → higher burnout risk. Importance: 12.51%</div>
+      </div>
+      <div style="background:var(--bg-raised); border-radius:10px; padding:1rem;">
+        <div style="font-size:1.4rem; font-weight:700; color:var(--purple); font-family:var(--font-mono);">6</div>
+        <div style="font-weight:700; margin:0.3rem 0 0.2rem;">Emotional Fatigue</div>
+        <div style="font-size:0.8rem; color:var(--fg-muted);">High fatigue → contributes to High burnout. Importance: 7.71%</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex; gap:1rem;">
+    <a href="{{ url_for('survey') }}"    class="btn btn-primary">Fill Survey →</a>
+    <a href="{{ url_for('test_results') }}" class="btn btn-outline">See 52-Student Results →</a>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-outline">← Dashboard</a>
+  </div>
+</div>
+{% endblock %}

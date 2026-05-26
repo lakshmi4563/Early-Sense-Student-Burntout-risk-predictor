@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% block title %}History — BurnoutGuard{% endblock %}
+
+{% block extra_css %}
+<style>
+.history-header { margin-bottom: 2rem; }
+.history-header h1 { font-size: 1.8rem; font-weight: 700; }
+.history-header p  { color: var(--fg-muted); margin-top: 0.3rem; }
+
+.week-cards { display: flex; flex-direction: column; gap: 1.25rem; margin-top: 1.5rem; }
+
+.week-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  transition: border-color 0.2s;
+}
+.week-card:hover { border-color: var(--border-glow); }
+.week-card.risk-High   { border-left: 4px solid #e74c3c; }
+.week-card.risk-Medium { border-left: 4px solid #f39c12; }
+.week-card.risk-Low    { border-left: 4px solid #27ae60; }
+
+.wc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.wc-week   { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-muted); }
+.wc-title  { font-size: 1.1rem; font-weight: 700; }
+.wc-body   { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media(max-width:600px) { .wc-body { grid-template-columns: 1fr; } }
+
+.wc-feat-list { list-style: none; display: flex; flex-direction: column; gap: 0.4rem; }
+.wc-feat-list li { font-size: 0.8rem; color: var(--fg-muted); display: flex; gap: 0.5rem; }
+.wc-feat-list .arrow-up   { color: #e74c3c; }
+.wc-feat-list .arrow-down { color: #27ae60; }
+
+.conf-mini { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
+.conf-mini-pill {
+  padding: 0.2rem 0.6rem;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  border: 1px solid;
+}
+.cmp-low    { color: #27ae60; border-color: rgba(39,174,96,0.4);  background: rgba(39,174,96,0.1); }
+.cmp-medium { color: #f39c12; border-color: rgba(243,156,18,0.4); background: rgba(243,156,18,0.1);}
+.cmp-high   { color: #e74c3c; border-color: rgba(231,76,60,0.4);  background: rgba(231,76,60,0.1); }
+
+.chart-full { width:100%; border-radius:var(--radius); border:1px solid var(--border); }
+
+.trend-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+@media(max-width:768px) { .trend-card { grid-template-columns: 1fr; } }
+
+.trend-stat { text-align: center; }
+.trend-stat .ts-val {
+  font-size: 2.5rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+.trend-stat .ts-label { font-size: 0.78rem; color: var(--fg-muted); margin-top: 0.2rem; }
+
+.empty-history {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--fg-muted);
+}
+.empty-history .ei { font-size: 3rem; display: block; margin-bottom: 1rem; }
+.empty-history h3  { color: var(--fg); font-size: 1.2rem; margin-bottom: 0.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+
+  <div class="history-header flex-between">
+    <div>
+      <h1>Your Progress History</h1>
+      <p>Week-by-week burnout risk tracking and analysis</p>
+    </div>
+    <div style="display:flex; gap:0.75rem;">
+      <a href="{{ url_for('dashboard') }}" class="btn btn-outline">← Dashboard</a>
+      <a href="{{ url_for('survey') }}"    class="btn btn-primary">New Survey →</a>
+    </div>
+  </div>
+
+  {% if not predictions %}
+  <div class="empty-history">
+    <span class="ei">📋</span>
+    <h3>No History Yet</h3>
+    <p>Complete your Week 1 survey to start seeing your progress here.</p>
+    <a href="{{ url_for('survey') }}" class="btn btn-primary mt-2">Start Week 1 →</a>
+  </div>
+  {% else %}
+
+  <!-- ── TREND OVERVIEW ── -->
+  <div class="trend-card">
+    <div>
+      <div class="card-title">📈 Trend Analysis</div>
+      <div style="font-size:1.5rem; font-weight:700; margin-bottom:0.5rem;">{{ trend.trend }}</div>
+      <p style="font-size:0.875rem; color:var(--fg-muted); line-height:1.6;">{{ trend.details }}</p>
+      {% if trend.streak is defined and trend.streak > 1 %}
+      <div class="mt-2">
+        <span class="risk-badge risk-{{ trend.streak_label }}">
+          {{ trend.streak_label }} for {{ trend.streak }} week(s)
+        </span>
+      </div>
+      {% endif %}
+    </div>
+    <div>
+      {% if chart_file %}
+        <img src="{{ url_for('static', filename='img/' ~ chart_file) }}"
+             class="chart-full" alt="Weekly Trend">
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ── WEEK-BY-WEEK CARDS ── -->
+  <h2 style="font-size:1.2rem; font-weight:700; margin-bottom:1rem;">
+    Week-by-Week Detail
+  </h2>
+  <div class="week-cards">
+    {% for p in predictions %}
+    <div class="week-card risk-{{ p.predicted_risk }}">
+      <div class="wc-header">
+        <div>
+          <div class="wc-week">Week {{ p.week_number }}</div>
+          <div class="wc-title">
+            {% if p.predicted_risk == 'High' %}⚠️{% elif p.predicted_risk == 'Medium' %}🟡{% else %}✅{% endif %}
+            {{ p.predicted_risk }} Burnout Risk
+          </div>
+        </div>
+        <div style="display:flex; gap:0.75rem; align-items:center;">
+          <span class="risk-badge risk-{{ p.predicted_risk }}">{{ p.predicted_risk }}</span>
+          <a href="{{ url_for('result', week=p.week_number) }}"
+             class="btn btn-outline btn-sm">Full Analysis →</a>
+        </div>
+      </div>
+
+      <div class="wc-body">
+        <!-- Top features -->
+        <div>
+          <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--fg-muted); margin-bottom:0.5rem;">
+            Top Contributing Factors
+          </div>
+          {% if p.top_features %}
+          <ul class="wc-feat-list">
+            {% for feat in p.top_features[:4] %}
+            <li>
+              <span class="{% if feat.direction == 'increases' %}arrow-up{% else %}arrow-down{% endif %}">
+                {% if feat.direction == 'increases' %}↑{% else %}↓{% endif %}
+              </span>
+              {{ feat.name }}
+              <span style="color:var(--fg-dim); font-family:var(--font-mono); font-size:0.72rem;">
+                ({{ feat.raw_value }})
+              </span>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <span style="font-size:0.8rem; color:var(--fg-dim);">No feature data</span>
+          {% endif %}
+        </div>
+
+        <!-- Confidence + summary -->
+        <div>
+          <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--fg-muted); margin-bottom:0.5rem;">
+            Confidence Scores
+          </div>
+          <div class="conf-mini">
+            <span class="conf-mini-pill cmp-low">Low {{ (p.confidence_low * 100)|int }}%</span>
+            <span class="conf-mini-pill cmp-medium">Medium {{ (p.confidence_medium * 100)|int }}%</span>
+            <span class="conf-mini-pill cmp-high">High {{ (p.confidence_high * 100)|int }}%</span>
+          </div>
+          {% if p.rec_summary %}
+          <p style="font-size:0.8rem; color:var(--fg-muted); margin-top:0.75rem; line-height:1.5;">
+            {{ p.rec_summary[:150] }}{% if p.rec_summary|length > 150 %}…{% endif %}
+          </p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- ── COMPARISON TABLE ── -->
+  <div class="card mt-4">
+    <div class="card-title">📊 Week Comparison Table</div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Week</th>
+          <th>Risk Level</th>
+          <th>Low %</th>
+          <th>Medium %</th>
+          <th>High %</th>
+          <th>Top Factor</th>
+          <th>Change</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in predictions %}
+        <tr>
+          <td class="mono">Week {{ p.week_number }}</td>
+          <td><span class="risk-badge risk-{{ p.predicted_risk }}">{{ p.predicted_risk }}</span></td>
+          <td class="mono text-green">{{ (p.confidence_low * 100)|int }}%</td>
+          <td class="mono text-yellow">{{ (p.confidence_medium * 100)|int }}%</td>
+          <td class="mono text-red">{{ (p.confidence_high * 100)|int }}%</td>
+          <td style="font-size:0.82rem;">
+            {% if p.top_features %}{{ p.top_features[0].name }}{% else %}—{% endif %}
+          </td>
+          <td>
+            {% if loop.index > 1 %}
+              {% set prev = predictions[loop.index0 - 1] %}
+              {% if p.predicted_risk == prev.predicted_risk %}
+                <span style="color:var(--fg-muted)">— Same</span>
+              {% elif p.predicted_risk == 'Low' or (p.predicted_risk == 'Medium' and prev.predicted_risk == 'High') %}
+                <span class="text-green">↓ Improved</span>
+              {% else %}
+                <span class="text-red">↑ Worsened</span>
+              {% endif %}
+            {% else %}
+              <span style="color:var(--fg-dim)">Baseline</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% endif %}
+</div>
+{% endblock %}

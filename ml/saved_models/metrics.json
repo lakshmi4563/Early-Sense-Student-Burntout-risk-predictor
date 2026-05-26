@@ -1,0 +1,606 @@
+{
+  "validation": {
+    "Random Forest": {
+      "Accuracy": 0.9605,
+      "Precision": 0.9609,
+      "Recall": 0.9605,
+      "F1-Score": 0.9603,
+      "AUC-ROC": 0.9957,
+      "CV-F1": "0.9553 \u00b1 0.0073"
+    },
+    "Decision Tree": {
+      "Accuracy": 0.9165,
+      "Precision": 0.9169,
+      "Recall": 0.9165,
+      "F1-Score": 0.9167,
+      "AUC-ROC": 0.9413,
+      "CV-F1": "0.9147 \u00b1 0.0066"
+    },
+    "Logistic Regression": {
+      "Accuracy": 0.994,
+      "Precision": 0.9947,
+      "Recall": 0.994,
+      "F1-Score": 0.9942,
+      "AUC-ROC": 0.9999,
+      "CV-F1": "0.9912 \u00b1 0.0024"
+    },
+    "KNN": {
+      "Accuracy": 0.8995,
+      "Precision": 0.8977,
+      "Recall": 0.8995,
+      "F1-Score": 0.8975,
+      "AUC-ROC": 0.9634,
+      "CV-F1": "0.8936 \u00b1 0.0034"
+    },
+    "SVM": {
+      "Accuracy": 0.976,
+      "Precision": 0.9764,
+      "Recall": 0.976,
+      "F1-Score": 0.9761,
+      "AUC-ROC": 0.9984,
+      "CV-F1": "0.9732 \u00b1 0.0049"
+    },
+    "Naive Bayes": {
+      "Accuracy": 0.931,
+      "Precision": 0.9351,
+      "Recall": 0.931,
+      "F1-Score": 0.9321,
+      "AUC-ROC": 0.9869,
+      "CV-F1": "0.9303 \u00b1 0.0060"
+    }
+  },
+  "test_distribution": {
+    "Medium": 35,
+    "High": 19,
+    "Low": 1
+  },
+  "student_predictions": [
+    {
+      "student_id": 1,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.9483,
+        "High": 0.0517
+      }
+    },
+    {
+      "student_id": 2,
+      "predicted_risk": "High",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.0,
+        "High": 1.0
+      }
+    },
+    {
+      "student_id": 3,
+      "predicted_risk": "High",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.0,
+        "High": 1.0
+      }
+    },
+    {
+      "student_id": 4,
+      "predicted_risk": "High",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.0779,
+        "High": 0.9221
+      }
+    },
+    {
+      "student_id": 5,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.9999,
+        "High": 0.0001
+      }
+    },
+    {
+      "student_id": 6,
+      "predicted_risk": "High",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.0,
+        "High": 1.0
+      }
+    },
+    {
+      "student_id": 7,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.9985,
+        "High": 0.0015
+      }
+    },
+    {
+      "student_id": 8,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 1.0,
+        "High": 0.0
+      }
+    },
+    {
+      "student_id": 9,
+      "predicted_risk": "High",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.0601,
+        "High": 0.9399
+      }
+    },
+    {
+      "student_id": 10,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.3625,
+        "Medium": 0.6375,
+        "High": 0.0
+      }
+    },
+    {
+      "student_id": 11,
+      "predicted_risk": "High",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.0,
+        "High": 1.0
+      }
+    },
+    {
+      "student_id": 12,
+      "predicted_risk": "High",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.0004,
+        "High": 0.9996
+      }
+    },
+    {
+      "student_id": 13,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 1.0,
+        "High": 0.0
+      }
+    },
+    {
+      "student_id": 14,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0178,
+        "Medium": 0.9822,
+        "High": 0.0
+      }
+    },
+    {
+      "student_id": 15,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.997,
+        "High": 0.003
+      }
+    },
+    {
+      "student_id": 16,
+      "predicted_risk": "High",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.0,
+        "High": 1.0
+      }
+    },
+    {
+      "student_id": 17,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.9999,
+        "High": 0.0001
+      }
+    },
+    {
+      "student_id": 18,
+      "predicted_risk": "High",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.0,
+        "High": 1.0
+      }
+    },
+    {
+      "student_id": 19,
+      "predicted_risk": "High",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.0,
+        "High": 1.0
+      }
+    },
+    {
+      "student_id": 20,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 1.0,
+        "High": 0.0
+      }
+    },
+    {
+      "student_id": 21,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.9988,
+        "High": 0.0012
+      }
+    },
+    {
+      "student_id": 22,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0036,
+        "Medium": 0.9964,
+        "High": 0.0
+      }
+    },
+    {
+      "student_id": 23,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.9744,
+        "High": 0.0256
+      }
+    },
+    {
+      "student_id": 24,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.004,
+        "Medium": 0.996,
+        "High": 0.0
+      }
+    },
+    {
+      "student_id": 25,
+      "predicted_risk": "High",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.0679,
+        "High": 0.9321
+      }
+    },
+    {
+      "student_id": 26,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 1.0,
+        "High": 0.0
+      }
+    },
+    {
+      "student_id": 27,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.001,
+        "Medium": 0.999,
+        "High": 0.0
+      }
+    },
+    {
+      "student_id": 28,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.6663,
+        "High": 0.3337
+      }
+    },
+    {
+      "student_id": 29,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 1.0,
+        "High": 0.0
+      }
+    },
+    {
+      "student_id": 30,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.974,
+        "High": 0.026
+      }
+    },
+    {
+      "student_id": 31,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.6406,
+        "High": 0.3594
+      }
+    },
+    {
+      "student_id": 32,
+      "predicted_risk": "High",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.027,
+        "High": 0.973
+      }
+    },
+    {
+      "student_id": 33,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 1.0,
+        "High": 0.0
+      }
+    },
+    {
+      "student_id": 34,
+      "predicted_risk": "High",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.0,
+        "High": 1.0
+      }
+    },
+    {
+      "student_id": 35,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.1195,
+        "Medium": 0.8805,
+        "High": 0.0
+      }
+    },
+    {
+      "student_id": 36,
+      "predicted_risk": "High",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.0882,
+        "High": 0.9118
+      }
+    },
+    {
+      "student_id": 37,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 1.0,
+        "High": 0.0
+      }
+    },
+    {
+      "student_id": 38,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.5658,
+        "High": 0.4342
+      }
+    },
+    {
+      "student_id": 39,
+      "predicted_risk": "High",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.0,
+        "High": 1.0
+      }
+    },
+    {
+      "student_id": 40,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.9982,
+        "High": 0.0018
+      }
+    },
+    {
+      "student_id": 41,
+      "predicted_risk": "High",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.0032,
+        "High": 0.9968
+      }
+    },
+    {
+      "student_id": 42,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.9731,
+        "High": 0.0269
+      }
+    },
+    {
+      "student_id": 43,
+      "predicted_risk": "High",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.0,
+        "High": 1.0
+      }
+    },
+    {
+      "student_id": 44,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 1.0,
+        "High": 0.0
+      }
+    },
+    {
+      "student_id": 45,
+      "predicted_risk": "High",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.0891,
+        "High": 0.9109
+      }
+    },
+    {
+      "student_id": 46,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0042,
+        "Medium": 0.9958,
+        "High": 0.0
+      }
+    },
+    {
+      "student_id": 47,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 1.0,
+        "High": 0.0
+      }
+    },
+    {
+      "student_id": 48,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 1.0,
+        "High": 0.0
+      }
+    },
+    {
+      "student_id": 49,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.9967,
+        "High": 0.0033
+      }
+    },
+    {
+      "student_id": 50,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 1.0,
+        "High": 0.0
+      }
+    },
+    {
+      "student_id": 51,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 1.0,
+        "High": 0.0
+      }
+    },
+    {
+      "student_id": 52,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0007,
+        "Medium": 0.9993,
+        "High": 0.0
+      }
+    },
+    {
+      "student_id": 53,
+      "predicted_risk": "Low",
+      "confidence": {
+        "Low": 0.9999,
+        "Medium": 0.0001,
+        "High": 0.0
+      }
+    },
+    {
+      "student_id": 54,
+      "predicted_risk": "High",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.0,
+        "High": 1.0
+      }
+    },
+    {
+      "student_id": 55,
+      "predicted_risk": "Medium",
+      "confidence": {
+        "Low": 0.0,
+        "Medium": 0.9999,
+        "High": 0.0001
+      }
+    }
+  ],
+  "n_test": 55,
+  "real_test_metrics": {
+    "note": "Real test data has no ground-truth labels. Metrics are computed from model confidence (probability calibration).",
+    "n_real_responses": 55,
+    "prediction_distribution": {
+      "Low": {
+        "count": 1,
+        "percentage": 1.8
+      },
+      "Medium": {
+        "count": 35,
+        "percentage": 63.6
+      },
+      "High": {
+        "count": 19,
+        "percentage": 34.5
+      }
+    },
+    "confidence": {
+      "mean_confidence_pct": 96.01,
+      "median_confidence_pct": 99.96,
+      "min_confidence_pct": 56.58,
+      "max_confidence_pct": 100.0,
+      "std_confidence_pct": 9.75,
+      "pct_above_90": 90.9,
+      "pct_above_99": 70.9,
+      "pct_at_100": 3.6,
+      "n_above_90": 50,
+      "n_above_99": 39,
+      "n_at_100": 2
+    },
+    "per_class_confidence": {
+      "Low": {
+        "mean": 0.0275,
+        "min": 0.0,
+        "max": 0.9999,
+        "std": 0.1417
+      },
+      "Medium": {
+        "mean": 0.6115,
+        "min": 0.0,
+        "max": 1.0,
+        "std": 0.4569
+      },
+      "High": {
+        "mean": 0.361,
+        "min": 0.0,
+        "max": 1.0,
+        "std": 0.4566
+      }
+    }
+  }
+}

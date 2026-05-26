@@ -1,0 +1,728 @@
+{% extends "base.html" %}
+{% block title %}Week {{ week_number }} Survey — BurnoutGuard{% endblock %}
+
+{% block extra_css %}
+<style>
+  .survey-wrap {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .survey-header {
+    margin-bottom: 2.5rem;
+    text-align: center;
+  }
+
+  .survey-header .week-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(108, 99, 255, 0.12);
+    border: 1px solid rgba(108, 99, 255, 0.4);
+    color: var(--purple);
+    border-radius: 100px;
+    padding: 0.3rem 1rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .survey-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .survey-header p {
+    color: var(--fg-muted);
+  }
+
+  /* Progress stepper */
+  .survey-progress {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .prog-step {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    border: 1px solid var(--border);
+    color: var(--fg-dim);
+    transition: all 0.3s;
+  }
+
+  .prog-step.active {
+    background: var(--purple);
+    border-color: var(--purple);
+    color: white;
+    box-shadow: 0 0 12px rgba(108, 99, 255, 0.5);
+  }
+
+  .prog-step.done {
+    background: rgba(39, 174, 96, 0.15);
+    border-color: #27ae60;
+    color: #27ae60;
+  }
+
+  .prog-line {
+    flex: 1;
+    max-width: 60px;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Section dividers */
+  .survey-section {
+    margin-bottom: 2.5rem;
+  }
+
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-label .icon {
+    font-size: 1.3rem;
+  }
+
+  .section-label h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--fg);
+  }
+
+  .section-label p {
+    font-size: 0.78rem;
+    color: var(--fg-muted);
+  }
+
+  /* Slider question */
+  .slider-question {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+    transition: border-color 0.2s;
+  }
+
+  .slider-question:hover {
+    border-color: var(--border-glow);
+  }
+
+  .sq-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+  }
+
+  .sq-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--fg);
+    flex: 1;
+    padding-right: 1rem;
+  }
+
+  .sq-hint {
+    font-size: 0.72rem;
+    color: var(--fg-dim);
+    margin-top: 0.2rem;
+  }
+
+  .sq-value-display {
+    font-family: var(--font-mono);
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--purple);
+    min-width: 50px;
+    text-align: right;
+  }
+
+  .sq-unit {
+    font-size: 0.7rem;
+    color: var(--fg-dim);
+    text-align: right;
+  }
+
+  /* Select question */
+  .select-question {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .select-question select {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--fg);
+    padding: 0.6rem 0.9rem;
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    outline: none;
+    margin-top: 0.5rem;
+    cursor: pointer;
+  }
+
+  .select-question select:focus {
+    border-color: var(--purple);
+  }
+
+  /* Submit button area */
+  .survey-submit {
+    text-align: center;
+    padding: 2rem 0;
+  }
+
+  .survey-submit .disclaimer {
+    font-size: 0.78rem;
+    color: var(--fg-dim);
+    margin-top: 1rem;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+
+
+  /* ═══ MOBILE SURVEY ENHANCEMENTS ═══ */
+  @media (max-width: 768px) {
+    .survey-wrap {
+      padding: 1rem 0.75rem;
+    }
+
+    .survey-header h1 {
+      font-size: 1.4rem !important;
+    }
+
+    .slider-question,
+    .select-question {
+      padding: 1rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .sq-label {
+      font-size: 0.9rem;
+    }
+
+    .sq-value-display {
+      font-size: 1.5rem;
+      min-width: 44px;
+    }
+
+    /* Larger tap areas for sliders on mobile */
+    input[type=range] {
+      height: 8px;
+      margin: 0.5rem 0;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      width: 30px;
+      height: 30px;
+    }
+
+    .section-label h3 {
+      font-size: 0.95rem;
+    }
+
+    .survey-submit .btn {
+      width: 100%;
+      justify-content: center;
+      font-size: 1rem;
+      padding: 1rem;
+    }
+
+    .prog-step {
+      width: 28px;
+      height: 28px;
+      font-size: 0.68rem;
+    }
+
+    .prog-line {
+      max-width: 40px;
+    }
+
+    /* Sticky submit button on mobile */
+    .survey-submit {
+      position: sticky;
+      bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+      background: linear-gradient(to top, var(--bg-deep) 70%, transparent);
+      padding: 1rem 0;
+      z-index: 10;
+      text-align: center;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .sq-top {
+      flex-direction: row;
+      gap: 0.5rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="survey-wrap">
+
+  <!-- Header -->
+  <div class="survey-header">
+    <div class="week-pill">📋 Week {{ week_number }} of 4</div>
+    <h1>Weekly Wellness Check-In</h1>
+    <p>Answer honestly — your data is private and used only for your personal burnout risk prediction.</p>
+  </div>
+
+  <!-- Week progress indicator -->
+  <div class="survey-progress">
+    {% for w in range(1, 5) %}
+    <div class="prog-step {% if w < week_number %}done{% elif w == week_number %}active{% endif %}">
+      {% if w < week_number %}✓{% else %}{{ w }}{% endif %} </div>
+        {% if w < 4 %}<div class="prog-line">
+    </div>{% endif %}
+    {% endfor %}
+  </div>
+
+  <!-- Survey Form -->
+  <form method="POST" action="{{ url_for('submit_survey') }}" id="surveyForm">
+
+    <!-- ═══ SECTION 1: BASIC INFO ═══ -->
+    <div class="survey-section">
+      <div class="section-label">
+        <span class="icon">👤</span>
+        <div>
+          <h3>Basic Information</h3>
+          <p>Demographic context for the model</p>
+        </div>
+      </div>
+
+      <!-- Age -->
+      <div class="slider-question">
+        <div class="sq-top">
+          <div>
+            <div class="sq-label">Age</div>
+            <div class="sq-hint">Your current age in years</div>
+          </div>
+          <div>
+            <div class="sq-value-display" id="val_age">21</div>
+            <div class="sq-unit">years</div>
+          </div>
+        </div>
+        <input type="range" name="age" id="age" min="15" max="35" value="21" step="1"
+          oninput="document.getElementById('val_age').textContent = this.value">
+        <div class="range-labels"><span>15</span><span>35</span></div>
+      </div>
+
+      <!-- Gender -->
+      <div class="select-question">
+        <div class="sq-label">Gender</div>
+        <select name="gender" class="form-control" style="margin-top:0.5rem;">
+          <option value="Female">Female</option>
+          <option value="Male">Male</option>
+          <option value="Non-binary">Non-binary</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <!-- Working Status -->
+      <div class="select-question">
+        <div class="sq-label">Current Working Status</div>
+        <select name="working_status" class="form-control" style="margin-top:0.5rem;">
+          <option value="Student">Student (Not Working)</option>
+          <option value="Part Time">Part-time Job</option>
+          <option value="Full Time">Full-time Job</option>
+          <option value="Both">Studying + Working</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 2: ACADEMIC & WORK ═══ -->
+    <div class="survey-section">
+      <div class="section-label">
+        <span class="icon">📚</span>
+        <div>
+          <h3>Academic & Work Load</h3>
+          <p>How much time you're spending on study/work this week</p>
+        </div>
+      </div>
+
+      <!-- Study hours -->
+      <div class="slider-question">
+        <div class="sq-top">
+          <div>
+            <div class="sq-label">Study / Work Hours per Day</div>
+            <div class="sq-hint">Average hours spent studying or working each day this week</div>
+          </div>
+          <div>
+            <div class="sq-value-display" id="val_study">6</div>
+            <div class="sq-unit">hrs/day</div>
+          </div>
+        </div>
+        <input type="range" name="study_work_hours_per_day" id="study_work_hours_per_day" min="0" max="16" value="6"
+          step="0.5" oninput="document.getElementById('val_study').textContent = this.value">
+        <div class="range-labels"><span>0</span><span>16</span></div>
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 3: PHYSICAL HEALTH ═══ -->
+    <div class="survey-section">
+      <div class="section-label">
+        <span class="icon">🏃</span>
+        <div>
+          <h3>Physical Health</h3>
+          <p>Sleep, exercise, caffeine — physical wellness indicators</p>
+        </div>
+      </div>
+
+      <!-- Sleep hours -->
+      <div class="slider-question">
+        <div class="sq-top">
+          <div>
+            <div class="sq-label">Sleep Hours per Day</div>
+            <div class="sq-hint">Average actual sleep (not time in bed) this week</div>
+          </div>
+          <div>
+            <div class="sq-value-display" id="val_sleep">7</div>
+            <div class="sq-unit">hrs/day</div>
+          </div>
+        </div>
+        <input type="range" name="daily_sleep_hours" id="daily_sleep_hours" min="3" max="12" value="7" step="0.5"
+          oninput="document.getElementById('val_sleep').textContent = this.value">
+        <div class="range-labels"><span>3 hrs</span><span>12 hrs</span></div>
+      </div>
+
+      <!-- Sleep quality -->
+      <div class="slider-question">
+        <div class="sq-top">
+          <div>
+            <div class="sq-label">Sleep Quality Score</div>
+            <div class="sq-hint">How refreshed do you feel after sleeping? (1 = very poor, 10 = excellent)</div>
+          </div>
+          <div>
+            <div class="sq-value-display" id="val_sleepq">6</div>
+            <div class="sq-unit">/10</div>
+          </div>
+        </div>
+        <input type="range" name="sleep_quality_score" id="sleep_quality_score" min="1" max="10" value="6" step="1"
+          oninput="document.getElementById('val_sleepq').textContent = this.value">
+        <div class="range-labels"><span>1 Very Poor</span><span>10 Excellent</span></div>
+      </div>
+
+      <!-- Exercise -->
+      <div class="slider-question">
+        <div class="sq-top">
+          <div>
+            <div class="sq-label">Exercise Days per Week</div>
+            <div class="sq-hint">Days you did any physical activity (walk, gym, yoga, etc.)</div>
+          </div>
+          <div>
+            <div class="sq-value-display" id="val_exercise">2</div>
+            <div class="sq-unit">days/wk</div>
+          </div>
+        </div>
+        <input type="range" name="exercise_frequency_per_week" id="exercise_frequency_per_week" min="0" max="7"
+          value="2" step="1" oninput="document.getElementById('val_exercise').textContent = this.value">
+        <div class="range-labels"><span>0</span><span>7 days</span></div>
+      </div>
+
+      <!-- Caffeine -->
+      <div class="slider-question">
+        <div class="sq-top">
+          <div>
+            <div class="sq-label">Caffeine Intake (Tea/Coffee)</div>
+            <div class="sq-hint">Average cups of tea or coffee per day</div>
+          </div>
+          <div>
+            <div class="sq-value-display" id="val_caffeine">1</div>
+            <div class="sq-unit">cups/day</div>
+          </div>
+        </div>
+        <input type="range" name="caffeine_intake_cups" id="caffeine_intake_cups" min="0" max="10" value="1" step="1"
+          oninput="document.getElementById('val_caffeine').textContent = this.value">
+        <div class="range-labels"><span>0</span><span>10+</span></div>
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 4: SCREEN & DIGITAL HABITS ═══ -->
+    <div class="survey-section">
+      <div class="section-label">
+        <span class="icon">📱</span>
+        <div>
+          <h3>Screen & Digital Habits</h3>
+          <p>Screen time, social media, gaming — digital wellness</p>
+        </div>
+      </div>
+
+      <!-- Screen time -->
+      <div class="slider-question">
+        <div class="sq-top">
+          <div>
+            <div class="sq-label">Total Screen Time per Day</div>
+            <div class="sq-hint">All devices combined (phone + laptop + TV), excluding study/work</div>
+          </div>
+          <div>
+            <div class="sq-value-display" id="val_screen">6</div>
+            <div class="sq-unit">hrs/day</div>
+          </div>
+        </div>
+        <input type="range" name="screen_time_hours" id="screen_time_hours" min="0" max="16" value="6" step="0.5"
+          oninput="document.getElementById('val_screen').textContent = this.value">
+        <div class="range-labels"><span>0</span><span>16</span></div>
+      </div>
+
+      <!-- Social media -->
+      <div class="slider-question">
+        <div class="sq-top">
+          <div>
+            <div class="sq-label">Social Media Hours per Day</div>
+            <div class="sq-hint">Instagram, YouTube, X, Snapchat, WhatsApp (not study-related)</div>
+          </div>
+          <div>
+            <div class="sq-value-display" id="val_social">3</div>
+            <div class="sq-unit">hrs/day</div>
+          </div>
+        </div>
+        <input type="range" name="daily_social_media_hours" id="daily_social_media_hours" min="0" max="12" value="3"
+          step="0.5" oninput="document.getElementById('val_social').textContent = this.value">
+        <div class="range-labels"><span>0</span><span>12</span></div>
+      </div>
+
+      <!-- Night scrolling -->
+      <div class="slider-question">
+        <div class="sq-top">
+          <div>
+            <div class="sq-label">Night Scrolling Frequency</div>
+            <div class="sq-hint">How often you scroll on phone before/during/after bedtime (0=never, 10=every night for
+              hours)</div>
+          </div>
+          <div>
+            <div class="sq-value-display" id="val_night">3</div>
+            <div class="sq-unit">/10</div>
+          </div>
+        </div>
+        <input type="range" name="night_scrolling_frequency" id="night_scrolling_frequency" min="0" max="10" value="3"
+          step="1" oninput="document.getElementById('val_night').textContent = this.value">
+        <div class="range-labels"><span>0 Never</span><span>10 Always</span></div>
+      </div>
+
+      <!-- Gaming -->
+      <div class="slider-question">
+        <div class="sq-top">
+          <div>
+            <div class="sq-label">Online Gaming Hours per Day</div>
+            <div class="sq-hint">Mobile or PC games — average hours per day this week</div>
+          </div>
+          <div>
+            <div class="sq-value-display" id="val_gaming">1</div>
+            <div class="sq-unit">hrs/day</div>
+          </div>
+        </div>
+        <input type="range" name="online_gaming_hours" id="online_gaming_hours" min="0" max="12" value="1" step="0.5"
+          oninput="document.getElementById('val_gaming').textContent = this.value">
+        <div class="range-labels"><span>0</span><span>12</span></div>
+      </div>
+
+      <!-- Content type -->
+      <div class="select-question">
+        <div class="sq-label">What type of content do you mostly consume online?</div>
+        <select name="content_type" class="form-control" style="margin-top:0.5rem;">
+          <option value="Entertainment">Entertainment (memes, reels, movies)</option>
+          <option value="Educational">Educational (tutorials, lectures)</option>
+          <option value="Social">Social (friends, influencers)</option>
+          <option value="Gaming">Gaming streams / content</option>
+          <option value="News">News & current affairs</option>
+          <option value="Lifestyle">Lifestyle / wellness</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 5: MENTAL & EMOTIONAL HEALTH ═══ -->
+    <div class="survey-section">
+      <div class="section-label">
+        <span class="icon">🧘</span>
+        <div>
+          <h3>Mental & Emotional Health</h3>
+          <p>Psychological wellness indicators — be as honest as you can</p>
+        </div>
+      </div>
+
+      <!-- Overthinking -->
+      <div class="slider-question">
+        <div class="sq-top">
+          <div>
+            <div class="sq-label">Overthinking Score</div>
+            <div class="sq-hint">How much do you overthink or ruminate? (1=rarely, 10=constantly)</div>
+          </div>
+          <div>
+            <div class="sq-value-display" id="val_overthink">5</div>
+            <div class="sq-unit">/10</div>
+          </div>
+        </div>
+        <input type="range" name="overthinking_score" id="overthinking_score" min="1" max="10" value="5" step="1"
+          oninput="document.getElementById('val_overthink').textContent = this.value">
+        <div class="range-labels"><span>1 Rarely</span><span>10 Constantly</span></div>
+      </div>
+
+      <!-- Anxiety -->
+      <div class="slider-question">
+        <div class="sq-top">
+          <div>
+            <div class="sq-label">Anxiety Level</div>
+            <div class="sq-hint">Overall anxiety/worry you felt this week (1=calm, 10=very anxious)</div>
+          </div>
+          <div>
+            <div class="sq-value-display" id="val_anxiety">4</div>
+            <div class="sq-unit">/10</div>
+          </div>
+        </div>
+        <input type="range" name="anxiety_score" id="anxiety_score" min="1" max="10" value="4" step="1"
+          oninput="document.getElementById('val_anxiety').textContent = this.value">
+        <div class="range-labels"><span>1 Calm</span><span>10 Very Anxious</span></div>
+      </div>
+
+      <!-- Mood stability -->
+      <div class="slider-question">
+        <div class="sq-top">
+          <div>
+            <div class="sq-label">Mood Stability</div>
+            <div class="sq-hint">How stable was your mood this week? (1=very unstable, 10=very stable)</div>
+          </div>
+          <div>
+            <div class="sq-value-display" id="val_mood">6</div>
+            <div class="sq-unit">/10</div>
+          </div>
+        </div>
+        <input type="range" name="mood_stability_score" id="mood_stability_score" min="1" max="10" value="6" step="1"
+          oninput="document.getElementById('val_mood').textContent = this.value">
+        <div class="range-labels"><span>1 Very Unstable</span><span>10 Very Stable</span></div>
+      </div>
+
+      <!-- Emotional fatigue -->
+      <div class="slider-question">
+        <div class="sq-top">
+          <div>
+            <div class="sq-label">Emotional Fatigue</div>
+            <div class="sq-hint">How emotionally drained/exhausted do you feel? (1=fresh, 10=completely drained)</div>
+          </div>
+          <div>
+            <div class="sq-value-display" id="val_fatigue">4</div>
+            <div class="sq-unit">/10</div>
+          </div>
+        </div>
+        <input type="range" name="emotional_fatigue_score" id="emotional_fatigue_score" min="1" max="10" value="4"
+          step="1" oninput="document.getElementById('val_fatigue').textContent = this.value">
+        <div class="range-labels"><span>1 Fresh</span><span>10 Drained</span></div>
+      </div>
+
+      <!-- Social comparison -->
+      <div class="slider-question">
+        <div class="sq-top">
+          <div>
+            <div class="sq-label">Social Comparison</div>
+            <div class="sq-hint">How much do you compare yourself to others (academics, lifestyle)? (1=never,
+              10=constantly)</div>
+          </div>
+          <div>
+            <div class="sq-value-display" id="val_compare">4</div>
+            <div class="sq-unit">/10</div>
+          </div>
+        </div>
+        <input type="range" name="social_comparison_index" id="social_comparison_index" min="1" max="10" value="4"
+          step="1" oninput="document.getElementById('val_compare').textContent = this.value">
+        <div class="range-labels"><span>1 Never</span><span>10 Constantly</span></div>
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 6: MOTIVATION & WELLBEING ═══ -->
+    <div class="survey-section">
+      <div class="section-label">
+        <span class="icon">⚡</span>
+        <div>
+          <h3>Motivation & Overall Wellbeing</h3>
+          <p>Your subjective sense of energy, purpose, and health</p>
+        </div>
+      </div>
+
+      <!-- Motivation -->
+      <div class="slider-question">
+        <div class="sq-top">
+          <div>
+            <div class="sq-label">Motivation Level</div>
+            <div class="sq-hint">How motivated do you feel about your studies/work this week? (1=no motivation, 10=very
+              motivated)</div>
+          </div>
+          <div>
+            <div class="sq-value-display" id="val_motivation">6</div>
+            <div class="sq-unit">/10</div>
+          </div>
+        </div>
+        <input type="range" name="motivation_level" id="motivation_level" min="1" max="10" value="6" step="1"
+          oninput="document.getElementById('val_motivation').textContent = this.value">
+        <div class="range-labels"><span>1 No Motivation</span><span>10 Very Motivated</span></div>
+      </div>
+
+    </div>
+
+    <!-- Submit -->
+    <div class="survey-submit">
+      <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+        🔮 Predict My Burnout Risk →
+      </button>
+      <div class="disclaimer">
+        Your responses are stored securely and used only for your personal burnout risk prediction.
+        This tool is for wellness awareness — not a clinical diagnosis.
+      </div>
+    </div>
+
+  </form>
+</div>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+
+
+  // Prevent double submit
+  document.getElementById('surveyForm').addEventListener('submit', function () {
+    const btn = document.getElementById('submitBtn');
+    btn.textContent = '⏳ Analysing...';
+    btn.disabled = true;
+  });
+
+  // Dynamic slider colour based on value
+  document.querySelectorAll('input[type=range]').forEach(slider => {
+    slider.addEventListener('input', function () {
+      const pct = (this.value - this.min) / (this.max - this.min) * 100;
+      this.style.background = `linear-gradient(to right, var(--purple) ${pct}%, var(--bg-raised) ${pct}%)`;
+    });
+    // Init
+    const pct = (slider.value - slider.min) / (slider.max - slider.min) * 100;
+    slider.style.background = `linear-gradient(to right, var(--purple) ${pct}%, var(--bg-raised) ${pct}%)`;
+  });
+</script>
+{% endblock %}

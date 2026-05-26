@@ -1,0 +1,1047 @@
+{% extends "base.html" %}
+{% block title %}Model Insights — BurnoutGuard{% endblock %}
+{% block extra_css %}
+<style>
+  .insights-hero {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .insights-hero .eyebrow {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--purple);
+    margin-bottom: 0.75rem;
+  }
+
+  .insights-hero h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+  }
+
+  .insights-hero p {
+    color: var(--fg-muted);
+    max-width: 620px;
+    margin: 0.5rem auto 0;
+    line-height: 1.7;
+  }
+
+  /* Tabs */
+  .tab-bar {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+  }
+
+  .tab-btn {
+    padding: 0.65rem 1.25rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--fg-muted);
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    margin-bottom: -1px;
+  }
+
+  .tab-btn.active {
+    color: var(--purple);
+    border-bottom-color: var(--purple);
+  }
+
+  .tab-btn:hover {
+    color: var(--fg);
+  }
+
+  .tab-panel {
+    display: none;
+  }
+
+  .tab-panel.active {
+    display: block;
+  }
+
+  /* Model choice card */
+  .model-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-glow);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    box-shadow: var(--glow-purple);
+    margin-bottom: 2rem;
+  }
+
+  .model-name-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .model-badge {
+    background: rgba(108, 99, 255, 0.12);
+    border: 1px solid rgba(108, 99, 255, 0.4);
+    color: var(--purple);
+    padding: 0.3rem 0.9rem;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .model-name-row h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+
+  .why-box {
+    background: var(--bg-raised);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-top: 1rem;
+  }
+
+  .why-box h4 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--purple);
+    margin-bottom: 0.75rem;
+  }
+
+  .why-box p {
+    font-size: 0.875rem;
+    color: var(--fg-muted);
+    line-height: 1.7;
+  }
+
+  /* 6-model comparison table */
+  .model-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    margin-bottom: 2rem;
+  }
+
+  .model-table th {
+    color: var(--fg-muted);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+
+  .model-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(42, 42, 74, 0.5);
+  }
+
+  .model-table tr.best-row td {
+    background: rgba(108, 99, 255, 0.06);
+  }
+
+  .model-table tr:hover td {
+    background: rgba(108, 99, 255, 0.04);
+  }
+
+  .score-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .score-bar {
+    height: 6px;
+    border-radius: 100px;
+    background: var(--purple);
+  }
+
+  .score-val {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--fg);
+    min-width: 46px;
+  }
+
+  /* SHAP explanation */
+  .shap-algo {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .shap-algo h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  .algo-step {
+    display: flex;
+    gap: 1rem;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .algo-step:last-child {
+    border-bottom: none;
+  }
+
+  .algo-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(108, 99, 255, 0.15);
+    border: 1px solid rgba(108, 99, 255, 0.4);
+    color: var(--purple);
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .algo-body h5 {
+    font-size: 0.875rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+
+  .algo-body p {
+    font-size: 0.82rem;
+    color: var(--fg-muted);
+    line-height: 1.6;
+  }
+
+  .algo-body code {
+    font-family: var(--font-mono);
+    background: var(--bg-raised);
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    color: var(--cyan);
+  }
+
+  /* Groups */
+  .groups-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  @media(max-width:900px) {
+    .groups-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .group-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+  }
+
+  .group-card-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+  }
+
+  .group-academic {
+    border-left: 4px solid #6c63ff;
+  }
+
+  .group-behavioural {
+    border-left: 4px solid #00d4aa;
+  }
+
+  .group-lifestyle {
+    border-left: 4px solid #f39c12;
+  }
+
+  .group-title-academic {
+    color: #6c63ff;
+  }
+
+  .group-title-behavioural {
+    color: #00d4aa;
+  }
+
+  .group-title-lifestyle {
+    color: #f39c12;
+  }
+
+  .group-feats {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .group-feats li {
+    font-size: 0.8rem;
+    color: var(--fg-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .group-feats li::before {
+    content: '→';
+    font-size: 0.7rem;
+  }
+
+  /* Risk profiles */
+  .profiles-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  @media(max-width:900px) {
+    .profiles-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .profile-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .profile-low {
+    border-top: 4px solid #27ae60;
+  }
+
+  .profile-medium {
+    border-top: 4px solid #f39c12;
+  }
+
+  .profile-high {
+    border-top: 4px solid #e74c3c;
+  }
+
+  .profile-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .profile-header h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+  }
+
+  .profile-header p {
+    font-size: 0.8rem;
+    color: var(--fg-muted);
+  }
+
+  .profile-body {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .pfeat {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid rgba(42, 42, 74, 0.4);
+    font-size: 0.82rem;
+  }
+
+  .pfeat:last-child {
+    border-bottom: none;
+  }
+
+  .pfeat-name {
+    color: var(--fg-muted);
+  }
+
+  .pfeat-value {
+    font-weight: 700;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+  }
+
+  .text-low {
+    color: #27ae60;
+  }
+
+  .text-medium {
+    color: #f39c12;
+  }
+
+  .text-high {
+    color: #e74c3c;
+  }
+
+  /* Notification email list */
+  .notif-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .notif-item {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .notif-icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+
+  .notif-body h5 {
+    font-size: 0.875rem;
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+  }
+
+  .notif-body p {
+    font-size: 0.8rem;
+    color: var(--fg-muted);
+    line-height: 1.55;
+  }
+
+  .notif-tag {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 100px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-left: 0.5rem;
+  }
+
+  .tag-auto {
+    background: rgba(108, 99, 255, 0.15);
+    color: var(--purple);
+  }
+
+  .tag-instant {
+    background: rgba(0, 212, 170, 0.15);
+    color: var(--cyan);
+  }
+
+  .tag-weekly {
+    background: rgba(243, 156, 18, 0.15);
+    color: var(--yellow);
+  }
+
+  .tag-alert {
+    background: rgba(231, 76, 60, 0.15);
+    color: var(--red);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+  <div class="insights-hero">
+    <div class="eyebrow">🔬 Technical Documentation</div>
+    <h1>Model Insights & System Architecture</h1>
+    <p>How the prediction works, which model was selected and why, how SHAP is computed,
+      what the feature groups mean, and how to interpret each risk profile.</p>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="showTab('model')">🧠 Logistic Regression</button>
+    <button class="tab-btn" onclick="showTab('shap')">🔍 SHAP & Groups</button>
+    <button class="tab-btn" onclick="showTab('profiles')">🎯 Risk Profiles</button>
+    <button class="tab-btn" onclick="showTab('notifications')">📧 Notifications</button>
+  </div>
+
+  <!-- ═══ TAB 1: MODEL SELECTION ═══ -->
+  <div class="tab-panel active" id="tab-model">
+
+    <!-- Best model card -->
+    <div class="model-card">
+      <div class="model-name-row">
+        <span class="model-badge">⭐ Primary Model</span>
+        <h2>Logistic Regression</h2>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem; margin-bottom:1rem;">
+        <div style="background:var(--bg-raised); border-radius:10px; padding:1rem; text-align:center;">
+          <div style="font-size:1.8rem; font-weight:700; color:var(--purple); font-family:var(--font-mono);">{{
+            model_info.metrics.accuracy }}%</div>
+          <div style="font-size:0.72rem; color:var(--fg-muted); text-transform:uppercase; letter-spacing:0.08em;">
+            Accuracy</div>
+        </div>
+        <div style="background:var(--bg-raised); border-radius:10px; padding:1rem; text-align:center;">
+          <div style="font-size:1.8rem; font-weight:700; color:var(--cyan); font-family:var(--font-mono);">{{
+            model_info.metrics.auc }}%</div>
+          <div style="font-size:0.72rem; color:var(--fg-muted); text-transform:uppercase; letter-spacing:0.08em;">
+            AUC-ROC</div>
+        </div>
+        <div style="background:var(--bg-raised); border-radius:10px; padding:1rem; text-align:center;">
+          <div style="font-size:1.8rem; font-weight:700; color:var(--green); font-family:var(--font-mono);">{{
+            model_info.metrics.f1 }}%</div>
+          <div style="font-size:0.72rem; color:var(--fg-muted); text-transform:uppercase; letter-spacing:0.08em;">
+            F1-Score</div>
+        </div>
+      </div>
+      <div class="why-box">
+        <h4>Why Logistic Regression was chosen</h4>
+        <p>After evaluating 6 classification algorithms, Logistic Regression was selected as the primary production
+          model.
+          It achieves the highest accuracy (99.40%) and perfect AUC-ROC calibration (99.99%), meaning its confidence
+          scores are
+          highly reliable for assessing student burnout risk. Unlike ensemble methods, it is faster to train, simpler to
+          maintain,
+          and provides transparent probability estimates essential for mental health applications. The model uses L2
+          regularization
+          and class weighting to handle the severe class imbalance (Low: 51 vs High: 4311 in training) while remaining
+          interpretable.</p>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-top:1rem;">
+        <div style="background:var(--bg-raised); border-radius:10px; padding:0.9rem;">
+          <div
+            style="font-size:0.72rem; color:var(--fg-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.4rem;">
+            Hyperparameters</div>
+          <code
+            style="font-family:var(--font-mono); font-size:0.78rem; color:var(--cyan); line-height:1.8; display:block;">
+            solver = 'lbfgs'<br>C = 1.0 (inv. regularization)<br>max_iter = 1000<br>class_weight = 'balanced'
+          </code>
+        </div>
+        <div style="background:var(--bg-raised); border-radius:10px; padding:0.9rem;">
+          <div
+            style="font-size:0.72rem; color:var(--fg-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.4rem;">
+            Calibration & Balance</div>
+          <p style="font-size:0.82rem; color:var(--fg-muted); line-height:1.6; margin:0;">
+            Training set: Low=51, Medium=3638, High=4311.<br>
+            <code
+              style="color:var(--cyan); background:var(--bg-deep); padding:0.1rem 0.3rem; border-radius:4px;">class_weight='balanced'</code>
+            adjusts penalty costs. Perfect AUC-ROC (99.99%) ensures probability calibration is reliable for confidence
+            scores.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- All Models Comparison Table -->
+    <div class="card mb-3">
+      <div class="card-title">📊 Model Comparison: All 6 Trained Models</div>
+      <table class="model-table">
+        <thead>
+          <tr>
+            <th>Model Name</th>
+            <th>Accuracy</th>
+            <th>F1-Score</th>
+            <th>AUC-ROC</th>
+            <th>Cross-Val F1</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="best-row">
+            <td><strong>Logistic Regression</strong></td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar" style="width:99.4%;"></div>
+                <span class="score-val">99.40%</span>
+              </div>
+            </td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar" style="width:99.42%;"></div>
+                <span class="score-val">99.42%</span>
+              </div>
+            </td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar" style="width:99.99%;"></div>
+                <span class="score-val">99.99%</span>
+              </div>
+            </td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar" style="width:99.12%;"></div>
+                <span class="score-val">99.12%</span>
+              </div>
+            </td>
+            <td><span class="model-badge">⭐ Selected</span></td>
+          </tr>
+          <tr>
+            <td><strong>SVM (RBF Kernel)</strong></td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar" style="width:97.6%;"></div>
+                <span class="score-val">97.60%</span>
+              </div>
+            </td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar" style="width:97.61%;"></div>
+                <span class="score-val">97.61%</span>
+              </div>
+            </td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar" style="width:99.84%;"></div>
+                <span class="score-val">99.84%</span>
+              </div>
+            </td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar" style="width:97.32%;"></div>
+                <span class="score-val">97.32%</span>
+              </div>
+            </td>
+            <td style="color:var(--fg-muted); font-size:0.8rem;">SHAP Explainer</td>
+          </tr>
+          <tr>
+            <td><strong>Random Forest</strong></td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar" style="width:96.05%;"></div>
+                <span class="score-val">96.05%</span>
+              </div>
+            </td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar" style="width:96.03%;"></div>
+                <span class="score-val">96.03%</span>
+              </div>
+            </td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar" style="width:99.57%;"></div>
+                <span class="score-val">99.57%</span>
+              </div>
+            </td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar" style="width:95.53%;"></div>
+                <span class="score-val">95.53%</span>
+              </div>
+            </td>
+            <td style="color:var(--fg-muted); font-size:0.8rem;">SHAP Explainer</td>
+          </tr>
+          <tr>
+            <td><strong>Naive Bayes</strong></td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar" style="width:93.1%;"></div>
+                <span class="score-val">93.10%</span>
+              </div>
+            </td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar" style="width:93.21%;"></div>
+                <span class="score-val">93.21%</span>
+              </div>
+            </td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar" style="width:98.69%;"></div>
+                <span class="score-val">98.69%</span>
+              </div>
+            </td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar" style="width:93.03%;"></div>
+                <span class="score-val">93.03%</span>
+              </div>
+            </td>
+            <td style="color:var(--fg-muted); font-size:0.8rem;">Moderate</td>
+          </tr>
+          <tr>
+            <td><strong>K-Nearest Neighbors</strong></td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar" style="width:89.95%;"></div>
+                <span class="score-val">89.95%</span>
+              </div>
+            </td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar" style="width:89.75%;"></div>
+                <span class="score-val">89.75%</span>
+              </div>
+            </td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar" style="width:96.34%;"></div>
+                <span class="score-val">96.34%</span>
+              </div>
+            </td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar" style="width:89.36%;"></div>
+                <span class="score-val">89.36%</span>
+              </div>
+            </td>
+            <td style="color:var(--fg-muted); font-size:0.8rem;">Distance-Based</td>
+          </tr>
+          <tr>
+            <td><strong>Decision Tree</strong></td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar" style="width:91.65%;"></div>
+                <span class="score-val">91.65%</span>
+              </div>
+            </td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar" style="width:91.67%;"></div>
+                <span class="score-val">91.67%</span>
+              </div>
+            </td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar" style="width:94.13%;"></div>
+                <span class="score-val">94.13%</span>
+              </div>
+            </td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar" style="width:91.47%;"></div>
+                <span class="score-val">91.47%</span>
+              </div>
+            </td>
+            <td style="color:var(--fg-muted); font-size:0.8rem;">Baseline</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="background:var(--bg-raised); border-radius:10px; padding:1rem; margin-top:1rem;">
+        <p style="font-size:0.82rem; color:var(--fg-muted); margin:0; line-height:1.6;">
+          <strong style="color:var(--fg);">Legend:</strong> Logistic Regression achieved the highest Accuracy (99.40%)
+          and perfect AUC-ROC (99.99%),
+          making it ideal for production. While Gradient Boosting has high AUC-ROC (99.67%), Logistic Regression's
+          superior accuracy and
+          transparent probability estimates make it more reliable for mental health applications where interpretability
+          is critical.
+        </p>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-title">✅ Train/Test Verification (Logistic)</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.75rem;">
+        <div style="background:var(--bg-raised); border:1px solid var(--border); border-radius:10px; padding:0.9rem;">
+          <div style="font-size:0.72rem; color:var(--fg-muted); text-transform:uppercase; letter-spacing:0.08em;">
+            Training Pipeline</div>
+          <div style="font-size:0.9rem; margin-top:0.35rem; font-weight:700; color:var(--green);">
+            {% if pipeline_checks.train_includes_logistic %}Using Logistic Regression{% else %}Missing Logistic in
+            metrics{% endif %}
+          </div>
+        </div>
+        <div style="background:var(--bg-raised); border:1px solid var(--border); border-radius:10px; padding:0.9rem;">
+          <div style="font-size:0.72rem; color:var(--fg-muted); text-transform:uppercase; letter-spacing:0.08em;">App
+            Prediction Model</div>
+          <div style="font-size:0.9rem; margin-top:0.35rem; font-weight:700; color:var(--fg);">{{
+            pipeline_checks.app_prediction_model }}</div>
+        </div>
+        <div style="background:var(--bg-raised); border:1px solid var(--border); border-radius:10px; padding:0.9rem;">
+          <div style="font-size:0.72rem; color:var(--fg-muted); text-transform:uppercase; letter-spacing:0.08em;">Test
+            Results Page</div>
+          <div style="font-size:0.9rem; margin-top:0.35rem; font-weight:700; color:var(--fg);">{{
+            pipeline_checks.test_results_model }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB 2: SHAP & GROUPS ═══ -->
+  <div class="tab-panel" id="tab-shap">
+
+    <div class="shap-algo">
+      <h3>🔍 How SHAP (Explainer) is Implemented</h3>
+      <p style="font-size:0.875rem; color:var(--fg-muted); margin-bottom:1rem;">
+        We implement <strong>LinearSHAP</strong> (Lundberg &amp; Lee, NeurIPS 2017) from scratch using
+        Logistic Regression coefficients — no external <code>shap</code> library required. This is the exact,
+        closed-form solution for linear models, mathematically faithful to the model's own learned weights.
+      </p>
+      <div class="algo-step">
+        <div class="algo-num">1</div>
+        <div class="algo-body">
+          <h5>Compute Background Mean from Training Data</h5>
+          <p>Calculate <code>E[x]</code> — the mean value of each feature across all training samples.
+            This serves as the baseline for comparison (the model's expected prediction on average data).</p>
+        </div>
+      </div>
+      <div class="algo-step">
+        <div class="algo-num">2</div>
+        <div class="algo-body">
+          <h5>Apply LinearSHAP Formula</h5>
+          <p>For each input sample and predicted class <em>c</em>:
+            <code>φ<sub>i</sub> = W[c, i] × (x<sub>i</sub> − E[x<sub>i</sub>])</code>,
+            where <code>W[c, i]</code> is the learned coefficient for feature <em>i</em> from the Logistic Regression model.
+            Each feature's contribution is directly proportional to its learned weight times its deviation from the mean.
+          </p>
+        </div>
+      </div>
+      <div class="algo-step">
+        <div class="algo-num">3</div>
+        <div class="algo-body">
+          <h5>Interpret Feature Contributions</h5>
+          <p>Result: <code>φ</code> vector where <strong>φᵢ &gt; 0</strong> means feature i pushed toward
+            higher burnout risk, and <strong>φᵢ &lt; 0</strong> means it reduced risk. The sum of all φᵢ
+            equals the model's deviation from its baseline prediction, guaranteeing SHAP additivity.</p>
+        </div>
+      </div>
+      <div class="algo-step">
+        <div class="algo-num">4</div>
+        <div class="algo-body">
+          <h5>Group Into Domains</h5>
+          <p>Features are grouped into <strong>Academic Stress</strong>, <strong>Behavioural Patterns</strong>,
+            and <strong>Lifestyle &amp; Health</strong>. Group SHAP = sum of |φᵢ| for all features in that domain.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feature groups -->
+    <h2 style="font-size:1.2rem; font-weight:700; margin-bottom:1rem;">Feature Grouping by Domain</h2>
+    <div class="groups-grid">
+      {% for grp, feats in model_info.groups.items() %}
+      <div
+        class="group-card {% if 'Academic' in grp %}group-academic{% elif 'Behavioural' in grp %}group-behavioural{% else %}group-lifestyle{% endif %}">
+        <div
+          class="group-card-title {% if 'Academic' in grp %}group-title-academic{% elif 'Behavioural' in grp %}group-title-behavioural{% else %}group-title-lifestyle{% endif %}">
+          {{ grp }}</div>
+        <ul class="group-feats">
+          {% for feat in feats %}<li>{{ feat }}</li>{% endfor %}
+        </ul>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Grouped SHAP charts -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:2rem;">
+      <div class="card">
+        <div class="card-title">SHAP by Domain ({{ n_test }} Real Students)</div>
+        <img src="{{ url_for('static', filename='img/shap_grouped.png') }}"
+          style="width:100%;border-radius:var(--radius);" onerror="this.style.display='none'">
+      </div>
+      <div class="card">
+        <div class="card-title">Group Contribution by Risk Level</div>
+        <img src="{{ url_for('static', filename='img/shap_group_by_risk.png') }}"
+          style="width:100%;border-radius:var(--radius);" onerror="this.style.display='none'">
+      </div>
+    </div>
+
+    <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:1rem;">Example: Grouped SHAP for 5 Real Students</h3>
+    {% for i in range(1, 6) %}
+    <div class="card mb-2">
+      <div class="card-title">Student {{ i }} — SHAP by Domain</div>
+      <img src="{{ url_for('static', filename='img/shap_grouped_student_' ~ i ~ '.png') }}"
+        style="width:100%;border-radius:var(--radius);" onerror="this.style.display='none'">
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- ═══ TAB 3: RISK PROFILES ═══ -->
+  <div class="tab-panel" id="tab-profiles">
+    <p class="text-muted mb-3" style="font-size:0.9rem; line-height:1.7;">
+      Based on SHAP analysis, the 5 most impactful features are
+      <strong style="color:var(--fg);">Anxiety, Motivation Level, Sleep Quality, Mood Stability,</strong> and
+      <strong style="color:var(--fg);">Sleep Hours</strong>. Setting these correctly in the survey will
+      reliably produce the desired prediction — useful for demonstrating the system live.
+    </p>
+
+
+    <!-- Why not Low Risk? Explanation -->
+    <div style="background:rgba(231,76,60,0.06); border:1px solid rgba(231,76,60,0.25);
+                border-radius:var(--radius); padding:1.25rem 1.5rem; margin-bottom:1.5rem;">
+      <h4 style="font-size:0.95rem; font-weight:700; color:#e74c3c; margin-bottom:0.75rem;">
+        ❓ Why am I not getting Low Risk even with good sleep and exercise?
+      </h4>
+      <p style="font-size:0.875rem; color:var(--fg-muted); line-height:1.7; margin-bottom:0.75rem;">
+        The model's <strong style="color:var(--fg);">5 most important features</strong> are all
+        <em>psychological indicators</em> — not physical ones. Good sleep and exercise matter,
+        but they cannot override severely high psychological scores.
+      </p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:0.75rem;">
+        <div style="background:var(--bg-raised); border-radius:10px; padding:1rem;">
+          <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em;
+                      color:var(--red); font-weight:700; margin-bottom:0.5rem;">🔴 BLOCKS Low Risk</div>
+          <ul
+            style="list-style:none; font-size:0.82rem; color:var(--fg-muted); display:flex; flex-direction:column; gap:0.35rem;">
+            <li>⬆ Emotional Fatigue ≥ 6</li>
+            <li>⬆ Anxiety Score ≥ 6</li>
+            <li>⬇ Mood Stability ≤ 5</li>
+            <li>⬇ Motivation Level ≤ 4</li>
+            <li>⬆ Overthinking Score ≥ 6</li>
+          </ul>
+        </div>
+        <div style="background:var(--bg-raised); border-radius:10px; padding:1rem;">
+          <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em;
+                      color:var(--green); font-weight:700; margin-bottom:0.5rem;">✅ Required for Low Risk</div>
+          <ul
+            style="list-style:none; font-size:0.82rem; color:var(--fg-muted); display:flex; flex-direction:column; gap:0.35rem;">
+            <li>Emotional Fatigue: <strong style="color:var(--fg);">1–3</strong></li>
+            <li>Anxiety Score: <strong style="color:var(--fg);">1–3</strong></li>
+            <li>Mood Stability: <strong style="color:var(--fg);">8–10</strong></li>
+            <li>Motivation Level: <strong style="color:var(--fg);">8–10</strong></li>
+            <li>Sleep Quality: <strong style="color:var(--fg);">7–10</strong></li>
+          </ul>
+        </div>
+      </div>
+      <p style="font-size:0.82rem; color:var(--fg-muted); line-height:1.65;">
+        <strong style="color:var(--fg);">Example that caused confusion:</strong> A response with
+        sleep=8 hrs, exercise=8 days but
+        Emotional Fatigue=8, Mood=3, Motivation=4 → Predicted <strong style="color:#e74c3c;">High Risk</strong>.
+        This is <strong style="color:var(--fg);">correct</strong> — those psychological scores indicate
+        burnout symptoms regardless of how much the person sleeps or exercises.
+        The model learned this pattern from 10,000 training samples.
+      </p>
+    </div>
+
+    <div class="profiles-grid">
+      {% for risk, info in guide.items() %}
+      <div
+        class="profile-card {% if risk == 'Low' %}profile-low{% elif risk == 'Medium' %}profile-medium{% else %}profile-high{% endif %}">
+        <div class="profile-header">
+          <h3
+            class="{% if risk == 'Low' %}text-low{% elif risk == 'Medium' %}text-medium{% else %}text-high{% endif %}">
+            {{ info.label }}</h3>
+          <p>{{ info.desc }}</p>
+        </div>
+        <div class="profile-body">
+          {% for fname, fval in info.features.items() %}
+          <div class="pfeat">
+            <span class="pfeat-name">{{ fname }}</span>
+            <span
+              class="pfeat-value {% if risk == 'Low' %}text-low{% elif risk == 'Medium' %}text-medium{% else %}text-high{% endif %}">{{
+              fval }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Feature importance chart -->
+    <div class="card">
+      <div class="card-title">Global Feature Importance (Random Forest — MDI)</div>
+      <img src="{{ url_for('static', filename='img/feature_importance.png') }}"
+        style="width:100%;border-radius:var(--radius);" onerror="this.style.display='none'">
+    </div>
+  </div>
+
+  <!-- ═══ TAB 4: NOTIFICATIONS ═══ -->
+  <div class="tab-panel" id="tab-notifications">
+    <div class="card mb-3">
+      <div class="card-title">📧 Email Notification System</div>
+      <p style="font-size:0.875rem; color:var(--fg-muted); margin-bottom:1.5rem; line-height:1.7;">
+        BurnoutGuard sends automated HTML emails via Gmail SMTP (using an App Password).
+        All emails are sent in a background thread — they never delay the web response.
+        Configure <code
+          style="color:var(--cyan); background:var(--bg-raised); padding:0.15rem 0.4rem; border-radius:4px;">BURNOUT_MAIL_SENDER</code>
+        and <code
+          style="color:var(--cyan); background:var(--bg-raised); padding:0.15rem 0.4rem; border-radius:4px;">BURNOUT_MAIL_PASSWORD</code>
+        environment variables to enable.
+      </p>
+      <div class="notif-list">
+        <div class="notif-item">
+          <div class="notif-icon">🎉</div>
+          <div class="notif-body">
+            <h5>Welcome Email <span class="notif-tag tag-instant">Instant</span></h5>
+            <p>Sent immediately on registration. Contains: how the system works, 4-step overview, link to Week 1 survey,
+              username reminder.</p>
+          </div>
+        </div>
+        <div class="notif-item">
+          <div class="notif-icon">📋</div>
+          <div class="notif-body">
+            <h5>Week 1 Reminder <span class="notif-tag tag-auto">24hrs after signup</span></h5>
+            <p>If the user registered but hasn't submitted Week 1 yet, a reminder is sent 24 hours later. Background
+              scheduler checks every 6 hours.</p>
+          </div>
+        </div>
+        <div class="notif-item">
+          <div class="notif-icon">📅</div>
+          <div class="notif-body">
+            <h5>Weekly Survey Reminder <span class="notif-tag tag-weekly">Every 7 days</span></h5>
+            <p>If the user submitted Week N but hasn't started Week N+1 after 7 days, an automated reminder is sent.
+              Includes which week is due, time to complete, and dashboard link.</p>
+          </div>
+        </div>
+        <div class="notif-item">
+          <div class="notif-icon">🔮</div>
+          <div class="notif-body">
+            <h5>Prediction Result Email <span class="notif-tag tag-instant">Instant after submission</span></h5>
+            <p>Sent immediately after each survey. Contains: risk level (visual), confidence scores (Low/Medium/High %),
+              top 3 SHAP-contributing features with direction, and recommendation summary. Links to full analysis.</p>
+          </div>
+        </div>
+        <div class="notif-item">
+          <div class="notif-icon">⚠️</div>
+          <div class="notif-body">
+            <h5>Trend Alert <span class="notif-tag tag-alert">When risk worsens</span></h5>
+            <p>Sent if trend changes to Declining or if risk jumps to High. Shows previous vs current risk, trend label,
+              and calls to action. Not sent for stable/improving trends (to avoid notification fatigue).</p>
+          </div>
+        </div>
+        <div class="notif-item">
+          <div class="notif-icon">🎓</div>
+          <div class="notif-body">
+            <h5>Completion Certificate Email <span class="notif-tag tag-instant">After Week 4</span></h5>
+            <p>Sent when all 4 weeks are completed. Shows full week-by-week risk journey, final trend label, and links
+              to the history page for the complete analysis.</p>
+          </div>
+        </div>
+      </div>
+
+      <div
+        style="background:rgba(108,99,255,0.06); border:1px solid rgba(108,99,255,0.25); border-radius:var(--radius); padding:1.25rem; margin-top:1.5rem;">
+        <h4 style="font-size:0.82rem; font-weight:700; color:var(--purple); margin-bottom:0.5rem;">Setup Instructions
+        </h4>
+        <pre
+          style="font-family:var(--font-mono); font-size:0.78rem; color:var(--cyan); line-height:1.8; margin:0; white-space:pre-wrap;">
+# Enable 2-Step Verification on Gmail
+# Go to: Google Account → Security → App Passwords
+# Create a new App Password → copy the 16-char code
+
+# Set environment variables before running app.py:
+export BURNOUT_MAIL_SENDER="yourmail@gmail.com"
+export BURNOUT_MAIL_PASSWORD="xxxx xxxx xxxx xxxx"
+
+python3 app.py  # Emails automatically enabled</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <div style="display:flex; gap:1rem; margin-top:1rem; flex-wrap:wrap;">
+    <a href="{{ url_for('test_results') }}" class="btn btn-primary">View {{ n_test }}-Student Results →</a>
+    <a href="{{ url_for('survey') }}" class="btn btn-outline">Fill Survey →</a>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-outline">← Dashboard</a>
+  </div>
+</div>
+
+<script>
+  function showTab(id) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    event.target.classList.add('active');
+  }
+</script>
+{% endblock %}
