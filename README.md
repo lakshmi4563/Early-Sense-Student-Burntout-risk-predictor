@@ -5,7 +5,7 @@
 > Student burnout is a growing mental health crisis in Indian universities. BurnoutGuard provides early detection through machine learning, explainability through SHAP, and actionable recovery plans.
 
 **Project:** RV University — BTech CSE Final Year (4 Credits)  
-**Student:** Nandini | **Year:** 2024–25  
+**Student:** Lakshmi | **Year:** 2024–25  
 **Status:** ✅ Complete & Production-Ready
 
 ---
